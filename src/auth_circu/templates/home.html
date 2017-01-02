@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+
+{% block pageid %}home{% endblock pageid %}
+
+{% block title %}Login - {{ super() }}{% endblock title %}
+
+{% block content %}
+<div class="container">
+
+  <div class="jumbotron">
+    <p>
+      <img src="{{ url_for('static', filename='img/logo.png') }}"
+           alt="Logo du parc du Mercantour">
+      </p>
+
+    <h1>Autorisation de circulation</h1>
+  </div>
+
+  <div class="row">
+
+    <form class="col-xs-offset-4 col-xs-4" action="/autorisations" method="get">
+      <div class="form-group">
+        <label for="email">Nom d'utilisateur</label>
+        <input type="text" class="form-control" id="username">
+      </div>
+      <div class="form-group">
+        <label for="password">Mot de passe</label>
+        <input type="password" class="form-control" id="password" placeholder="Password">
+      </div>
+      <p>
+        <button type="submit" class="btn btn-default pull-right">
+          Se connecter
+        </button>
+      </p>
+    </form>
+
+  </div>
+
+</div>
+{% endblock content %}

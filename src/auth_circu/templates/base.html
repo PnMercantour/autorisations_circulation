@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>{% block title %}Autorisation de circulation{% endblock title %}</title>
+  <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body id="{% block pageid %}no-id{% endblock pageid %}">
+{% block content %}
+{% endblock content %}
+</body>
+</html>

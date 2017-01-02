@@ -1,0 +1,17 @@
+/******************
+HOME PAGE
+*******************/
+
+#home {
+  background-color: #7BAF44;
+}
+
+.jumbotron {
+  background-color: white;
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.jumbotron img {
+  width: 80%;
+}
