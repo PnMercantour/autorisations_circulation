@@ -6,8 +6,9 @@ module.exports = {
         }
     },
     "files": [
-      "src/auth_circu/static/css/*.css",
-      "src/auth_circu/static/js/*.js",
+      "src/auth_circu/static/css/**/*.css",
+      "src/auth_circu/static/js/**/*.js",
+      "src/auth_circu/static/img/**/*.png|jp(e)?p|gif|ico",
       "src/auth_circu/templates/*.html",
     ],
     "watchOptions": {},
