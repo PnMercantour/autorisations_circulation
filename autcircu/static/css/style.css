@@ -18,39 +18,46 @@ Global
   height: 75px;
   background-color: #5EAE27;
   color: white;
+  display: flex;
+  flex-direction: row;
 }
 
+.main-header .title {
+  display: flex;
+  flex-direction: row;
+  max-width: 60%;
+}
 
 .main-header h1{
   font-size: 2.5rem;
-  padding-right: 1rem;
+  padding: 0 2rem;
   text-overflow: ellipsis;
   overflow: hidden;
   white-space: nowrap;
 }
 
-.main-header .navbar-header.pull-left {
-  border: 1px solid red;
+.main-header .menu{
+  margin-left: auto;
 }
 
-.main-header .navbar-brand {
-    padding-top: 0;
+.main-header .menu li{
+  display: inline-block;
 }
 
-.main-header .navbar-header.profile .navbar-nav{
-    margin: 0; /* Reset responsive margin from bootstrap*/
-}
-
-.main-header .profile .dropdown > a {
+.main-header .menu .dropdown-toggle{
   line-height: 75px;
+  display: inline-block;
   padding: 0 1rem;
   color: white;
 }
 
-.main-header .profile .dropdown > a:hover,
-.main-header .profile .open > a {
+.main-header .menu .dropdown-toggle:hover{
   background-color: #689432;
-  color: white;
+  text-decoration: none;
+}
+
+.main-header .menu .dropdown-menu li {
+  width: 100%;
 }
 
 

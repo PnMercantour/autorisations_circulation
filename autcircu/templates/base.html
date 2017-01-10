@@ -12,50 +12,51 @@
 
 {% block header %}
 
+<header class="main-header container-fluid">
 
-<nav class="navbar navbar-default main-header">
-  <div class="container-fluid">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header pull-left">
-
-      <a class="navbar-brand" href="/">
+  <div class="title">
+    <nav>
+      <a href="/">
           <img alt="Brand"
                src="{{ url_for('static', filename='img/logo_header.png') }}">
       </a>
-      <h1>Liste des autorisations</h1>
-    </div>
+    </nav>
+    <h1>Liste des autorisations</h1>
+  </div>
 
-    <div class="navbar-header pull-right profile">
-      <ul class="nav navbar-nav">
+  <nav class="menu">
 
-        <li class="dropdown" uib-dropdown>
-          <a class="dropdown-toggle" data-toggle="dropdown" role="button"
-             aria-haspopup="true" aria-expanded="false" uib-dropdown-toggle>
-             <span class="glyphicon glyphicon-plus"></span>
-             <span class="visible-lg-inline-block">Nouvelle autorisation</span>
-             <span class=" caret"></span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
-            <li><a>Professionnelle</a></li>
-            <li><a>Pour Salèse</a></li>
-            <li><a>Autre</a></li>
-          </ul>
-        </li>
-        <li class="dropdown" uib-dropdown>
-          <a class="dropdown-toggle" data-toggle="dropdown" role="button"
-             aria-haspopup="true" aria-expanded="false" uib-dropdown-toggle>
-             <span class="glyphicon glyphicon-user"></span>
-             <span class="visible-lg-inline-block">Samuel Priou</span>
-             <span class=" caret"></span>
-          </a>
-          <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
-            <li><a>Se déconnecter</a></li>
-          </ul>
-        </li>
-      </ul>
-    </div><!-- /.navbar-collapse -->
-  </div><!-- /.container-fluid -->
-</nav>
+    <ul>
+      <li class="dropdown" uib-dropdown>
+        <a class="dropdown-toggle href="#"" data-toggle="dropdown" role="button"
+           aria-haspopup="true" aria-expanded="false" uib-dropdown-toggle>
+           <span class="glyphicon glyphicon-plus"></span>
+           <span class="visible-lg-inline-block">Nouvelle autorisation</span>
+           <span class=" caret"></span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
+          <li><a href="#">Professionnelle</a></li>
+          <li><a href="#">Pour Salèse</a></li>
+          <li><a href="#">Autre</a></li>
+        </ul>
+      </li>
+
+      <li class="dropdown" uib-dropdown>
+        <a class="dropdown-toggle" data-toggle="dropdown" role="button"
+           aria-haspopup="true" aria-expanded="false" uib-dropdown-toggle>
+           <span class="glyphicon glyphicon-user"></span>
+           <span class="visible-lg-inline-block">Samuel Priou</span>
+           <span class=" caret"></span>
+        </a>
+        <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
+          <li><a href="#">Se déconnecter</a></li>
+        </ul>
+      </li>
+
+    </ul>
+  </nav>
+
+</header>
 {% endblock header %}
 
 {% block content %}
