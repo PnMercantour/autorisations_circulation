@@ -6,10 +6,10 @@ module.exports = {
         }
     },
     "files": [
-      "src/auth_circu/static/css/**/*.css",
-      "src/auth_circu/static/js/**/*.js",
-      "src/auth_circu/static/img/**/*.png|jp(e)?p|gif|ico",
-      "src/auth_circu/templates/*.html",
+      "autcircu/static/css/**/*.css",
+      "autcircu/static/js/**/*.js",
+      "autcircu/static/img/**/*.png|jp(e)?p|gif|ico",
+      "autcircu/templates/*.html",
     ],
     "watchOptions": {},
     "server": false,

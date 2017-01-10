@@ -16,9 +16,10 @@ Global
   border: none;
   border-radius: 0px;
   height: 75px;
-  background-color: #76A939;
+  background-color: #5EAE27;
   color: white;
 }
+
 
 .main-header h1{
   font-size: 2.5rem;
@@ -28,18 +29,26 @@ Global
   white-space: nowrap;
 }
 
+.main-header .navbar-header.pull-left {
+  border: 1px solid red;
+}
+
 .main-header .navbar-brand {
     padding-top: 0;
 }
 
-.main-header .navbar-right .dropdown > a {
+.main-header .navbar-header.profile .navbar-nav{
+    margin: 0; /* Reset responsive margin from bootstrap*/
+}
+
+.main-header .profile .dropdown > a {
   line-height: 75px;
   padding: 0 1rem;
   color: white;
 }
 
-.main-header .navbar-right .dropdown > a:hover,
-.main-header .navbar-right .open > a {
+.main-header .profile .dropdown > a:hover,
+.main-header .profile .open > a {
   background-color: #689432;
   color: white;
 }
@@ -50,7 +59,7 @@ HOME PAGE
 *******************/
 
 #home {
-  background-color: #76A939;
+  background-color: #5EAE27;
 }
 
 .jumbotron {
