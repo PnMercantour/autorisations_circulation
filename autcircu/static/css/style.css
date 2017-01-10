@@ -144,19 +144,27 @@ LISTING PAGE
 /* Listing */
 
 #listing .auth-list .date {
-  width: 15ex;
+  min-width: 15ex;
+}
+
+#listing .auth-list .date span {
+  display: block;
 }
 
 
 #listing .auth-list .candidate {
-  width: 35ex;
+  min-width: 35ex;
+}
+
+
+#listing .auth-list .document {
+  text-align: center;
 }
 
 
 #listing .auth-list .document a {
   text-decoration: underline;
 }
-
 
 
 #listing .auth-list .edit {
@@ -193,3 +201,62 @@ LISTING PAGE
   margin-right: 1rem;
 }
 
+#listing tbody tr:nth-of-type(odd) {
+  background: #eee;
+}
+
+/* Display the table as a list for smalls screen */
+@media only screen and (max-width: 1080px)  {
+
+  /* Force table to not be like tables anymore */
+  table, thead, tbody, th, td, tr {
+    display: block;
+  }
+
+  /* Hide headers */
+  thead tr {
+    display: none;
+  }
+
+  tr {
+    border: 1px solid #ccc;
+  }
+
+  td {
+    /* Behave  like a "row" */
+    border: none;
+    border-bottom: 1px solid #eee;
+    position: relative;
+    padding-left: 50%;
+  }
+
+  td:before {
+    /* Now like a table header */
+    /* Top/left values mimic padding */
+    top: 6px;
+    left: 6px;
+    width: 100%;
+    display: block;
+    text-align: center;
+    white-space: nowrap;
+    font-weight: bold;
+  }
+
+  /*
+  Label the data
+  */
+  td:nth-of-type(1):before { content: "Dates"; }
+  td:nth-of-type(2):before { content: "Demandeur"; }
+  td:nth-of-type(3):before { content: "Lieux"; }
+  td:nth-of-type(4):before { content: "Véhicules"; }
+  td:nth-of-type(5):before { content: "Document"; }
+
+  #listing .auth-list .date {
+    text-align: center;
+  }
+
+  #listing .auth-list .date span {
+    display: inline;
+  }
+
+}
