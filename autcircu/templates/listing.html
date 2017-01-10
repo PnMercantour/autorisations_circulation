@@ -5,9 +5,167 @@
 {% block title %}Liste des autorisations - {{ super() }}{% endblock title %}
 
 {% block content %}
+<section class="container">
 
-<div class="container">
+
+  <header class="listing-header row">
+    <nav class="col-lg-6 col-md-12">
+      <ul>
+        <li class="previous">
+          <a href="#">
+            <span class="glyphicon glyphicon-chevron-left"></span>
+          </a>
+        </li>
+
+        <li>
+          <label>Autorisations</label>
+          <select name="auth_type">
+            {% for value, name in auth_status.items() %}
+              <option value="{{ value }}">{{ name }}</option>
+            {% endfor %}
+          </select>
+        </li>
+        <li>
+          <label>pour</label>
+          <select name="month">
+
+            {% for i, month in months %}
+              <option value="{{ i }}"
+                      {% if i == selected_month %}selected{% endif %}>
+                {{ month }}
+              </option>
+            {% endfor %}
+          </select>
+        </li>
+
+        <li>
+          <label>de</label>
+          <select name="year">
+            {% for year in range(end_year, start_year - 1, -1) %}
+              <option value="year"
+                      {% if year == selected_year %}selected{% endif %}>
+                {{ year }}
+              </option>
+            {% endfor %}
+          </select>
+
+        </li>
+
+        <li class="next">
+          <a href="#">
+            <span class="glyphicon glyphicon-chevron-right"></span>
+          </a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="input-group search" class="col-lg-6 col-md-12">
+      <input type="text" class="form-control"
+            placeholder="Ex: Salèze + VM 89">
+      <span class="input-group-btn">
+        <button class="btn btn-default" type="button">
+          <span class="glyphicon glyphicon-search"></span>
+        </button>
+      </span>
+    </div>
+
+  </header>
+
+  <table class="table auth-list">
+
+    <thead>
+      <tr>
+        <th class="date">Dates</th>
+        <th class="candidate">Demandeur</th>
+        <th>Lieux</th>
+        <th>Véhicules</th>
+        <th class="document">Document</th>
+        <th class="edit"></th>
+      </tr>
+    </thead>
+
+    <tbody>
+      <tr>
+        <td class="date">De 10/01/2017<br> à 10/01/2018</td>
+        <td class="candidate">
+          <strong>M. Ian Itor</strong> <br>
+          23 ave du Plot perdu, 06100 Nice<br>
+          (0692898212)
+        </td>
+        <td>Salèse, Piste 1, UP 2, Salèse, Pisfdsfqfdqfdsfdqfdsqfdsq ffdqs qdsfqsdfte 1, UP 2, Salèse, Piste 1, UP 2</td>
+        <td>678 JK 78, 456 IO 32</td>
+
+        <td class="document">
+          <a href="#">2017-C0001 </a>
+        </td>
+
+        <td class="edit">
+          <a href="/">
+            <span class="glyphicon glyphicon-pencil"></span>
+          </a>
+          <a href="/">
+            <span class="glyphicon glyphicon-duplicate"></span>
+          </a>
+        </td>
+
+      </tr>
+
+<tr>
+        <td class="date">De 10/01/2017<br> à 10/01/2018</td>
+        <td class="candidate">
+          <strong>M. Ian Itor</strong> <br>
+          23 ave du Plot perdu, 06100 Nice<br>
+          (0692898212)
+        </td>
+        <td>Salèse, Piste 1, UP 2, Salèse, Pisfdsfqfdqfdsfdqfdsqfdsq ffdqs qdsfqsdfte 1, UP 2, Salèse, Piste 1, UP 2</td>
+        <td>678 JK 78, 456 IO 32</td>
+
+        <td class="document">
+          <a href="#">2017-C0001 </a>
+        </td>
+
+        <td class="edit">
+          <a href="/">
+            <span class="glyphicon glyphicon-pencil"></span>
+          </a>
+          <a href="/">
+            <span class="glyphicon glyphicon-duplicate"></span>
+          </a>
+        </td>
+
+      </tr>
+
+    </tbody>
+
+  </table>
 
 
-</div>
+  <footer class="listing-footer">
+    <p><strong>Total</strong>: 2</p>
+    <dl>
+      <dt>Exporter cette liste en:</dt>
+
+      <!--
+          TODO:
+          Add attribution to gliphycons and those icons
+         Icon made by <a title="Freepik" href="http://www.freepik.com">Freepik</a> from <a title="Flaticon" href="http://www.flaticon.com">www.flaticon.com</a>
+      -->
+      <dd>
+        <a href="#">
+          .ods
+          <img alt="Télécharger en tant que ODS" class="file-icon"
+               src="{{ url_for('static', filename='img/ods.svg') }}">
+        </a>
+      </dd>
+      <dd>
+        <a href="#">
+          .pdf
+          <img alt="Télécharger en tant que ODS" class="file-icon"
+               src="{{ url_for('static', filename='img/pdf.svg') }}">
+        </a>
+      </dd>
+    </dl>
+  </footer>
+
+</section>
 {% endblock content %}

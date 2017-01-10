@@ -10,6 +10,7 @@ Global
   cursor: pointer;
 }
 
+
 /* Header */
 
 .main-header {
@@ -77,5 +78,118 @@ HOME PAGE
 
 .jumbotron img {
   width: 80%;
+}
+
+/******************
+LISTING PAGE
+*******************/
+
+/* General styles */
+
+#listing .auth-list a,
+#listing .listing-footer a {
+  color: grey;
+}
+
+#listing .auth-list a:hover,
+#listing .listing-footer a:hover {
+  color: inherit;
+}
+
+#listing .listing-header nav {
+  padding-left: 0;
+  margin: 1rem 0;
+}
+
+#listing .listing-header ul {
+  padding: 0;
+  margin: 0;
+}
+
+#listing .listing-header li,
+#listing .auth-list li {
+  list-style-type: none;
+}
+
+#listing .file-icon {
+  width:2rem;
+}
+
+/* Header */
+
+#listing .listing-header {
+  margin: 1rem 0 2rem 0;
+}
+
+#listing .listing-header li{
+  display: inline-block;
+}
+
+#listing .listing-header li.previous,
+#listing .listing-header li.next{
+  font-size: 2.5rem;
+  vertical-align: middle;
+  color: #5EAE27;
+}
+
+#listing .listing-header li.previous a,
+#listing .listing-header li.next a{
+  color: #5EAE27;
+}
+
+#listing .listing-header .search{
+  margin: 1rem 0;
+}
+
+/* Listing */
+
+#listing .auth-list .date {
+  width: 15ex;
+}
+
+
+#listing .auth-list .candidate {
+  width: 35ex;
+}
+
+
+#listing .auth-list .document a {
+  text-decoration: underline;
+}
+
+
+
+#listing .auth-list .edit {
+  min-width: 15ex;
+  text-align: center;
+}
+
+#listing .auth-list .edit a {
+  padding: 0 1rem;
+  width: 2000px;
+}
+
+/* Footer */
+
+#listing .listing-footer {
+  display: flex;
+  flex-direction: row;
+}
+
+#listing .listing-footer dl {
+   margin-left: auto;
+}
+
+#listing .listing-footer dl {
+  display: flex;
+  flex-direction: row;
+}
+
+#listing .listing-footer dt {
+  margin-right: 1rem;
+}
+
+#listing .listing-footer dd {
+  margin-right: 1rem;
 }
 
