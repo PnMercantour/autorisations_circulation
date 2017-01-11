@@ -186,20 +186,25 @@ LISTING PAGE
 @media only screen and (max-width: 1080px)  {
 
   /* Force table to not be like tables anymore */
-  table, thead, tbody, th, td, tr {
+  #listing table,
+  #listing thead,
+  #listing tbody,
+  #listing th,
+  #listing td,
+  #listing tr {
     display: block;
   }
 
-  thead tr {
+  #listing thead tr {
     display: none;
   }
 
-  tr {
+  #listing tr {
     border: 1px solid #ccc;
   }
 
   /* Behave  like a "row" */
-  td {
+  #listing td {
     border: none;
     border-bottom: 1px solid #eee;
     position: relative;
@@ -207,7 +212,7 @@ LISTING PAGE
   }
 
   /* Label the data */
-  td:before {
+  #listing td:before {
 
     width: 100%;
     display: block;
@@ -216,11 +221,21 @@ LISTING PAGE
     font-weight: bold;
   }
 
-  td:nth-of-type(1):before { content: "Dates"; }
-  td:nth-of-type(2):before { content: "Demandeur"; }
-  td:nth-of-type(3):before { content: "Lieux"; }
-  td:nth-of-type(4):before { content: "Véhicules"; }
-  td:nth-of-type(5):before { content: "Document"; }
+  #listing td:nth-of-type(1):before {
+    content: "Dates";
+  }
+  #listing td:nth-of-type(2):before {
+      content: "Demandeur";
+    }
+  #listing td:nth-of-type(3):before {
+    content: "Lieux";
+  }
+  #listing td:nth-of-type(4):before {
+    content: "Véhicules";
+  }
+  #listing td:nth-of-type(5):before {
+    content: "Document";
+  }
 
   #listing .auth-list .date {
     text-align: center;
@@ -257,3 +272,83 @@ LISTING PAGE
   margin-right: 1rem;
 }
 
+
+/******************
+NEW AUTHORIZATION PAGE
+*******************/
+
+#auth-form form {
+  margin: 1rem 0;
+}
+
+#auth-form fieldset {
+  margin-top: 3rem;
+}
+
+#auth-form legend {
+  margin: 0;
+}
+
+#auth-form form .row {
+  margin-top: 2rem;
+}
+
+#auth-form form .delete {
+  margin: 1rem;
+  font-size: 0.8rem;
+  color: black;
+}
+
+#auth-form form .address textarea {
+  height: 10rem;
+}
+
+#auth-form form .address textarea{
+  display: block;
+  width: 100%;
+}
+
+#auth-form form .motive select{
+  width: 100%;
+}
+
+
+#auth-form form .proofdoc {
+  margin-left: 5rem;
+}
+
+#auth-form form .proofdoc .date span {
+  margin-right: 3rem;
+}
+
+#auth-form form .proofdoc .date a {
+  position: absolute;
+  top:  0.5rem;
+}
+
+#auth-form form .addproofdoc {
+  text-align:  center;
+  margin-left: 5rem;
+}
+
+#auth-form form .places .input-group {
+  width: 100%;
+}
+
+#auth-form form .rules textarea {
+  width: 100%;
+}
+
+#auth-form form .addvehicule button {
+  margin-bottom: 2rem;
+}
+
+#auth-form form footer fieldset {
+  display:  flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+#auth-form form footer fieldset p:last-child{
+  margin-left:  auto;
+}

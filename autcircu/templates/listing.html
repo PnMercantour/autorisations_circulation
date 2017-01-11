@@ -3,6 +3,7 @@
 {% block pageid %}listing{% endblock pageid %}
 
 {% block title %}Liste des autorisations - {{ super() }}{% endblock title %}
+{% block h1 %}Liste des autorisations{% endblock h1 %}
 
 {% block content %}
 <section class="container">
@@ -100,12 +101,8 @@
         </td>
 
         <td class="edit">
-          <a href="/">
-            <span class="glyphicon glyphicon-pencil"></span>
-          </a>
-          <a href="/">
-            <span class="glyphicon glyphicon-duplicate"></span>
-          </a>
+          <a href="/"><span class="glyphicon glyphicon-pencil"></span></a>
+          <a href="/"><span class="glyphicon glyphicon-duplicate"></span></a>
         </td>
 
       </tr>

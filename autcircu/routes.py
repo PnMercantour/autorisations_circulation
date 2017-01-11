@@ -8,9 +8,11 @@ from .conf import app
 
 MONTHS = [(0, 'tout mois')]
 MONTHS.extend((i, datetime(2008, i, 1).strftime('%B')) for i in range(1, 13))
-AUTH_STATUS = {'both': "émises ou valides",
-               'emitted': 'émises',
-               'active': 'valides'}
+AUTH_STATUS = {
+    'both': "émises ou valides",
+    'emitted': 'émises',
+    'active': 'valides'
+}
 
 
 def to_int(obj, default):
@@ -25,7 +27,12 @@ def home():
     return render_template('home.html')
 
 
-@app.route("/autorisations")
+@app.route("/authorizations/new")
+def auth_form():
+    return render_template('auth_form.html')
+
+
+@app.route("/authorizations")
 def listing():
 
     now = datetime.utcnow()
@@ -53,7 +60,6 @@ def listing():
 
 @app.route('/favicon.ico')
 def favicon():
-    print('test')
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'img/favicon.ico',
                                mimetype='image/vnd.microsoft.icon')

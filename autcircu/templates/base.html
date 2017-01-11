@@ -21,7 +21,7 @@
                src="{{ url_for('static', filename='img/logo_header.png') }}">
       </a>
     </nav>
-    <h1>Liste des autorisations</h1>
+    <h1>{% block h1 %}Autorisation de circulation{% endblock h1 %}</h1>
   </div>
 
   <nav class="menu">
@@ -35,7 +35,7 @@
            <span class=" caret"></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
-          <li><a href="#">Professionnelle</a></li>
+          <li><a href="{{ url_for('auth_form') }}">Professionnelle</a></li>
           <li><a href="#">Pour Salèse</a></li>
           <li><a href="#">Autre</a></li>
         </ul>
