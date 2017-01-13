@@ -172,7 +172,7 @@
       </div>
     </div>
 
-    <div class="row">
+    <div class="row time-period">
 
       <div class="col-md-7">
         <p><Strong>Pour la période</Strong></p>
@@ -180,59 +180,59 @@
 
       <div class="col-md-7">
 
-          <label>Du</label>
-          <span class="input-group">
+        <label>Du</label>
+        <span class="input-group">
 
-            <input type="text" class="form-control"
-                   uib-datepicker-popup="dd/MM/yyyy"
-                   ng-model="vm.requestData.requestDate"
-                   is-open="vm.datePicker.opened"
-                   datepicker-options="{startingDay: 1}"
-                   ng-required="true"
-                   close-text="Fermer"
-                   current-text="Aujourd'hui"
-                   clear-text="Supprimer"  />
-            <span class="input-group-btn">
-              <button type="button" class="btn btn-default"
-                      ng-click="vm.datePicker.opened = true">
-                <i class="glyphicon glyphicon-calendar"></i>
-              </button>
-            </span>
+          <input type="text" class="form-control"
+                 uib-datepicker-popup="dd/MM/yyyy"
+                 ng-model="vm.requestData.requestDate"
+                 is-open="vm.datePicker.opened"
+                 datepicker-options="{startingDay: 1}"
+                 ng-required="true"
+                 close-text="Fermer"
+                 current-text="Aujourd'hui"
+                 clear-text="Supprimer"  />
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default"
+                    ng-click="vm.datePicker.opened = true">
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
           </span>
+        </span>
 
-          <label>au</label>
+        <label>au</label>
 
-          <span class="input-group">
+        <span class="input-group">
 
-            <input type="text" class="form-control"
-                   uib-datepicker-popup="dd/MM/yyyy"
-                   ng-model="vm.requestData.requestDate"
-                   is-open="vm.datePicker.opened"
-                   datepicker-options="{startingDay: 1}"
-                   ng-required="true"
-                   close-text="Fermer"
-                   current-text="Aujourd'hui"
-                   clear-text="Supprimer"  />
-            <span class="input-group-btn">
-              <button type="button" class="btn btn-default"
-                      ng-click="vm.datePicker.opened = true">
-                <i class="glyphicon glyphicon-calendar"></i>
-              </button>
-            </span>
+          <input type="text" class="form-control"
+                 uib-datepicker-popup="dd/MM/yyyy"
+                 ng-model="vm.requestData.requestDate"
+                 is-open="vm.datePicker.opened"
+                 datepicker-options="{startingDay: 1}"
+                 ng-required="true"
+                 close-text="Fermer"
+                 current-text="Aujourd'hui"
+                 clear-text="Supprimer"  />
+          <span class="input-group-btn">
+            <button type="button" class="btn btn-default"
+                    ng-click="vm.datePicker.opened = true">
+              <i class="glyphicon glyphicon-calendar"></i>
+            </button>
           </span>
-
-        </div>
+        </span>
 
       </div>
 
-      <div class="row rules">
-        <div class="col-md-6">
-          <p>
-            <label>Prescriptions</label>
-          </p>
-          <textarea></textarea>
-        </div>
+    </div>
+
+    <div class="row rules">
+      <div class="col-md-6">
+        <p>
+          <label>Prescriptions</label>
+        </p>
+        <textarea></textarea>
       </div>
+    </div>
 
   </fieldset>
 

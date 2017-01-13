@@ -2,9 +2,14 @@ import os
 
 from datetime import datetime
 
+import pypnusershub.routes
+
 from flask import render_template, send_from_directory, request
 
 from .conf import app
+
+app.register_blueprint(pypnusershub.routes.routes, url_prefix='/auth/')
+
 
 MONTHS = [(0, 'tout mois')]
 MONTHS.extend((i, datetime(2008, i, 1).strftime('%B')) for i in range(1, 13))
