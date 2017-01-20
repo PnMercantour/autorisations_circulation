@@ -8,10 +8,6 @@ from pathlib import Path
 
 from flask import Flask
 
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
-
-from pypnusershub.db.models import User, db
 
 LOCALE = ('fr_FR', 'UTF-8')
 
@@ -28,8 +24,6 @@ except locale.Error:
 
 app = Flask('autcircu')
 
-admin = Admin(app, name='Admin de la BDD des autorisations')
-admin.add_view(ModelView(User, db.session))
 
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     'postgresql://mercantour:mercantour'

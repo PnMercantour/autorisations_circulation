@@ -6,13 +6,26 @@ import pypnusershub.routes
 
 from flask import render_template, send_from_directory, request
 
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+
+from pypnusershub.db.models import User, db
+
 from .conf import app
 
+
+# Automatic admin
+admin = Admin(app, name='Admin de la BDD des autorisations')
+admin.add_view(ModelView(User, db.session))
+
+
+# Auth
 app.register_blueprint(pypnusershub.routes.routes, url_prefix='/auth/')
 
 
-MONTHS = [(0, 'tout mois')]
+MONTHS = [('all-months', 'tout mois')]
 MONTHS.extend((i, datetime(2008, i, 1).strftime('%B')) for i in range(1, 13))
+
 AUTH_STATUS = {
     'both': "émises ou valides",
     'emitted': 'émises',
@@ -41,8 +54,18 @@ def auth_form():
 def listing():
 
     now = datetime.utcnow()
-    selected_year = to_int(request.args.get('year'), now.year)
-    selected_month = to_int(request.args.get('month'), now.month)
+
+    selected_year = request.args.get('year')
+    if selected_year != "last-5-years":
+        selected_year = to_int(selected_year, now.year)
+
+    years = [('last-5-years', 'depuis 5 ans')]
+    # TODO: get year from db
+    years.extend(((i, f'de {i}')) for i in range(now.year, 2000 - 1, -1))
+
+    selected_month = request.args.get('month')
+    if selected_month != "all-months":
+        selected_month = to_int(selected_month, now.month)
 
     # TODO: by default "emitted" for admin, and "active" for agents
     default_status = 'emitted'
@@ -54,9 +77,8 @@ def listing():
     return render_template('listing.html',
                            selected_year=selected_year,
                            selected_month=selected_month,
-                           end_year=now.year,
-                           start_year=2000,  # TODO: get year from db
                            type=type,
+                           years=years,
                            months=MONTHS,
                            selected_auth_status=selected_auth_status,
                            auth_status=AUTH_STATUS,
@@ -68,3 +90,4 @@ def favicon():
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'img/favicon.ico',
                                mimetype='image/vnd.microsoft.icon')
+

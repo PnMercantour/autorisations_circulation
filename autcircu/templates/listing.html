@@ -10,7 +10,7 @@
 
 
   <header class="listing-header row">
-    <nav class="col-lg-6 col-md-12">
+    <nav class="col-lg-7 col-md-12">
       <ul>
         <li class="previous">
           <a href="#">
@@ -40,12 +40,11 @@
         </li>
 
         <li>
-          <label>de</label>
           <select name="year">
-            {% for year in range(end_year, start_year - 1, -1) %}
+            {% for value, name in years %}
               <option value="year"
-                      {% if year == selected_year %}selected{% endif %}>
-                {{ year }}
+                      {% if value == selected_year %}selected{% endif %}>
+                {{ name }}
               </option>
             {% endfor %}
           </select>
@@ -60,7 +59,7 @@
       </ul>
     </nav>
 
-    <div class="input-group search" class="col-lg-6 col-md-12">
+    <div class="input-group search" class="col-lg-5 col-md-12">
       <input type="text" class="form-control"
             placeholder="Ex: Salèze + VM 89">
       <span class="input-group-btn">
