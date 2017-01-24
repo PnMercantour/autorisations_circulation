@@ -14,6 +14,10 @@ Cependant, chaque année le Parc national du Mercantour (PNM) délivre entre 600
 * Framework JS : AngularJS
 * Framework CSS : Bootstrap
 
+# Fonctionnalités
+
+Consulter les fonctionnalités : A venir
+
 # Installation
 
 Consulter la documentation : A venir
