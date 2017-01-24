@@ -13,3 +13,13 @@ Cependant, chaque année le Parc national du Mercantour (PNM) délivre entre 600
 * Framework PYTHON : Flask
 * Framework JS : AngularJS
 * Framework CSS : Bootstrap
+
+# Installation
+
+Consulter la documentation : A venir
+
+# License
+
+* Application développée par Kevin Samuel
+* OpenSource - BSD
+* Copyright © 2016 - Parc National du Mercantour
