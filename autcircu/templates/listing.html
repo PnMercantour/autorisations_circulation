@@ -22,12 +22,15 @@
           <label>Autorisations</label>
           <select name="auth_type">
             {% for value, name in auth_status.items() %}
-              <option value="{{ value }}">{{ name }}</option>
+              <option value="{{ value }}"
+                      {% if value == selected_auth_status %}selected{% endif %}>
+                      {{ name }}
+              </option>
             {% endfor %}
           </select>
         </li>
         <li>
-          <label>pour</label>
+          <label>en</label>
           <select name="month">
 
             {% for i, month in months %}

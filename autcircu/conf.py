@@ -4,10 +4,7 @@ import warnings
 
 from textwrap import dedent
 
-from pathlib import Path
-
 from flask import Flask
-
 
 LOCALE = ('fr_FR', 'UTF-8')
 
@@ -24,7 +21,7 @@ except locale.Error:
 
 app = Flask('autcircu')
 
-
+# TODO: make a config file for those and secret key
 app.config['SQLALCHEMY_DATABASE_URI'] = (
     'postgresql://mercantour:mercantour'
     '@127.0.0.1:5432/mercantour'
@@ -40,4 +37,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 #    db.create_all()
 # if you wish to create the databases
 app.config['INIT_APP_WITH_DB'] = True
+
 app.config['SECRET_KEY'] = 'test'
+app.config['COOKIE_AUTORENEW'] = True
+app.config['COOKIE_EXPIRATION'] = 60 * 60 * 8  # 8 hours
+
+app.config['AUTHCIRCU_USERSHUB_APP_ID'] = 20
+app.config['BAD_LOGIN_STATUS_CODE'] = 400

@@ -4,10 +4,19 @@ import argparse
 
 from IPython import embed
 
-from autcircu.models import (populate_db, RequestMotive, RestrictedPlace,
-                             LetterTemplate, AuthRequest, start_app_context,
-                             init_db, delete_db)  # noqa
+from autcircu.db.models import ( # noqa
+    RequestMotive, RestrictedPlace, LetterTemplate,
+    AuthRequest, db
+)
+from autcircu.db.utils import (
+    start_app_context, init_db, delete_db, create_test_user, populate_db
+)
+
 from autcircu.conf import app  # noqa
+
+from pypnusershub.db.models import (  # noqa
+    User, Application, AppUser, ApplicationRight, UserApplicationRight
+)
 
 
 def call_init_db(args):
@@ -16,6 +25,7 @@ def call_init_db(args):
     print('Done')
     if args.populate:
         call_populate_db(args)
+
 
 def call_delete_db(args):
     if not args.yes:
@@ -48,7 +58,23 @@ def call_populate_db(args):
 
 def shell(args):
     start_app_context()
+    session = db.session  # noqa
     embed()
+
+
+def call_create_test_user(args):
+    print('Creating user')
+    start_app_context()
+    try:
+        create_test_user(
+            app,
+            username=args.username,
+            password=args.password,
+            access_rights=args.access_rights
+        )
+    except ValueError as e:
+        sys.exit(e)
+    print('Done')
 
 
 def make_cmd_parser():
@@ -78,6 +104,25 @@ def make_cmd_parser():
                                  help='Populate the db with legacy auth')
     parser_reset_db.add_argument('--yes', action='store_true',
                                  help='Skip the confirmation')
+
+    parser_create_user = subparsers.add_parser('create_test_user')
+    parser_create_user.set_defaults(func=call_create_test_user)
+    parser_create_user.add_argument('username', help='The user\'s login')
+    parser_create_user.add_argument('password', help='The user\'s password')
+
+    def access_rights(x):
+        msg = "Access rights must be a number between 0 and 6"
+        try:
+            x = int(x)
+        except (ValueError, TypeError):
+            raise argparse.ArgumentTypeError(msg)
+        if not 0 <= x <= 6:
+            raise argparse.ArgumentTypeError(msg)
+        return x
+
+    parser_create_user.add_argument('--access-rights', type=access_rights,
+                                    help='The level of rights of this user',
+                                    default=6)
 
     parser_shell = subparsers.add_parser('shell')
     parser_shell.set_defaults(func=shell)

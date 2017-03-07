@@ -20,16 +20,28 @@
 
   <div class="row">
 
-    <form class="col-xs-offset-4 col-xs-4" action="/authorizations" method="get">
+    <form class="col-xs-offset-4 col-xs-4" action="/authorizations" method="get"
+         ng-controller="LoginFormCtrl as vm" ng-submit="vm.login($event)">
+
+      {% raw %}
+      <p class="alert alert-warning" ng-if="vm.error">{{ vm.error }}</p>
+      {% endraw %}
+
       <div class="form-group">
         <label for="email">Nom d'utilisateur</label>
-        <input type="text" class="form-control" id="username">
+        <input type="text" class="form-control" required
+               id="username" ng-model="vm.loginData.login">
       </div>
       <div class="form-group">
         <label for="password">Mot de passe</label>
-        <input type="password" class="form-control" id="password" placeholder="Password">
+        <input type="password" class="form-control"
+               ng-model="vm.loginData.password"
+               id="password" placeholder="Password" required>
       </div>
       <p>
+        <input type="hidden" ng-model="vm.loginData.id_application"
+                ng-init="vm.loginData.id_application = {{ usershub_app_id }}" >
+
         <button type="submit" class="btn btn-default pull-right">
           Se connecter
         </button>
