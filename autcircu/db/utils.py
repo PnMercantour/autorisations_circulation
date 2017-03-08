@@ -1,4 +1,7 @@
 
+import string
+import random
+
 import unicodedata
 
 from csv import DictReader
@@ -15,6 +18,14 @@ from pypnusershub.db.tools import init_schema, delete_schema, load_fixtures
 from pypnusershub.utils import text_resource_stream
 
 import autcircu
+
+
+def generate_secret_key(size=50):
+    punc = string.punctuation
+    for letter in "%#;=:[]":
+        punc = punc.replace(letter, '')
+    pool = string.ascii_letters + string.digits + punc
+    return "".join(random.SystemRandom().choice(pool) for i in range(size))
 
 
 def start_app_context():

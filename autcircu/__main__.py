@@ -1,6 +1,10 @@
 
+import os
 import sys
 import argparse
+import configparser
+
+from pathlib import Path
 
 from IPython import embed
 
@@ -9,7 +13,8 @@ from autcircu.db.models import ( # noqa
     AuthRequest, db
 )
 from autcircu.db.utils import (
-    start_app_context, init_db, delete_db, create_test_user, populate_db
+    start_app_context, init_db, delete_db, create_test_user, populate_db,
+    generate_secret_key
 )
 
 from autcircu.conf import app  # noqa
@@ -77,6 +82,44 @@ def call_create_test_user(args):
     print('Done')
 
 
+def generate_config_file(args):
+
+    curdir = Path(os.getcwd())
+    default_file_path = curdir / 'settings.ini'
+
+    filepath = input('Where to save the config file ? '
+                     f'(default: "{default_file_path}")\n')
+    filepath = Path(filepath or default_file_path)
+
+    if filepath.is_file():
+        confirm = input(f'"{filepath}" already exists. Overwrite ? [y/N]\n')
+        if confirm.lower() != 'y':
+            sys.exit('Abort')
+
+    db_uri = input('Database configuration uri (it should look like '
+                   '"dbengine://username:password@host:port/dbname")\n')
+    if not db_uri:
+        sys.exit('This field is mandatory')
+
+    secret_key = input('Secret key (default is to generate one '
+                       'automatically for you)\n')
+    secret_key = secret_key or generate_secret_key()
+
+    try:
+        with filepath.open('w') as f:
+            config = configparser.ConfigParser()
+            config['security'] = {
+                'SQLALCHEMY_DATABASE_URI': db_uri,
+                'SECRET_KEY': secret_key
+            }
+            config.write(f)
+    except (IOError, OSError) as e:
+        sys.exit(f'Unable to write to "{filepath}": {e}')
+
+    print('You can now run the server with: '
+          f' python runserver.py --config-file "{filepath}"')
+
+
 def make_cmd_parser():
     """ Create a CMD parser with subcommands """
     parser = argparse.ArgumentParser('python -m autcircu')
@@ -84,6 +127,9 @@ def make_cmd_parser():
     parser.set_defaults(func=lambda x: parser.print_usage(sys.stderr))
 
     subparsers = parser.add_subparsers()
+
+    parser_generate_config_file = subparsers.add_parser('generate_config_file')
+    parser_generate_config_file.set_defaults(func=generate_config_file)
 
     parser_init_schema = subparsers.add_parser('populate_db')
     parser_init_schema.set_defaults(func=call_populate_db)
