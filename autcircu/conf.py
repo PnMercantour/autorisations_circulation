@@ -42,7 +42,7 @@ if not config_file and need_config_file:
             'Please provide a config file with the --config-file option '
             'in runserver or using the "AUTH_CIRCU_CONFIG_FILE" env var. '
             'You can generate one using the generate_config_file subcommand.'
-        )
+            )
 
 if need_config_file:
     try:
@@ -53,7 +53,8 @@ if need_config_file:
     try:
         conf = configparser.ConfigParser()
         conf.read(config_file)
-    except (MissingSectionHeaderError, ParsingError) as e:
+    except (configparser.MissingSectionHeaderError,
+            configparser.ParsingError) as e:
         sys.exit(f'"{config_file}" is a malformed config file: {e}')
 
     try:
