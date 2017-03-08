@@ -28,7 +28,6 @@ app = Flask('autcircu')
 # load config file
 config_file = os.environ.get("AUTH_CIRCU_CONFIG_FILE", "")
 
-
 need_config_file = not any((
     'generate_config_file' in sys.argv,
     '--help' in sys.argv,
@@ -36,9 +35,14 @@ need_config_file = not any((
 ))
 
 if not config_file and need_config_file:
-    sys.exit('Please provide a config file with the --config-file option '
-             'in runserver or using the "AUTH_CIRCU_CONFIG_FILE" env var. You '
-             'can generate one using the generate_config_file subcommand.')
+
+    config_file = Path('./settings.ini')
+    if not config_file.is_file():
+        sys.exit(
+            'Please provide a config file with the --config-file option '
+            'in runserver or using the "AUTH_CIRCU_CONFIG_FILE" env var. '
+            'You can generate one using the generate_config_file subcommand.'
+        )
 
 if need_config_file:
     try:

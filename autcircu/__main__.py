@@ -133,6 +133,10 @@ def make_cmd_parser():
 
     parser_init_schema = subparsers.add_parser('populate_db')
     parser_init_schema.set_defaults(func=call_populate_db)
+    parser_init_schema.add_argument(
+        '--config-file',
+        help='Path to the config file'
+    )
 
     parser_init_db = subparsers.add_parser('init_db')
     parser_init_db.set_defaults(func=call_init_db)
@@ -140,9 +144,17 @@ def make_cmd_parser():
                                 help='Populate the db with legacy auth')
     parser_init_db.add_argument('--yes', action='store_true',
                                 help='Skip the confirmation')
+    parser_init_db.add_argument(
+        '--config-file',
+        help='Path to the config file'
+    )
 
     parser_delete_db = subparsers.add_parser('delete_db')
     parser_delete_db.set_defaults(func=call_delete_db)
+    parser_delete_db.add_argument(
+        '--config-file',
+        help='Path to the config file'
+    )
 
     parser_reset_db = subparsers.add_parser('reset_db')
     parser_reset_db.set_defaults(func=reset_db)
@@ -150,11 +162,19 @@ def make_cmd_parser():
                                  help='Populate the db with legacy auth')
     parser_reset_db.add_argument('--yes', action='store_true',
                                  help='Skip the confirmation')
+    parser_reset_db.add_argument(
+        '--config-file',
+        help='Path to the config file'
+    )
 
     parser_create_user = subparsers.add_parser('create_test_user')
     parser_create_user.set_defaults(func=call_create_test_user)
     parser_create_user.add_argument('username', help='The user\'s login')
     parser_create_user.add_argument('password', help='The user\'s password')
+    parser_create_user.add_argument(
+        '--config-file',
+        help='Path to the config file'
+    )
 
     def access_rights(x):
         msg = "Access rights must be a number between 0 and 6"
@@ -172,6 +192,10 @@ def make_cmd_parser():
 
     parser_shell = subparsers.add_parser('shell')
     parser_shell.set_defaults(func=shell)
+    parser_shell.add_argument(
+        '--config-file',
+        help='Path to the config file'
+    )
 
     return parser
 
