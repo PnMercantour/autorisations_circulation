@@ -52,7 +52,7 @@ if need_config_file:
 
     try:
         conf = configparser.ConfigParser()
-        conf.read(config_file)
+        conf.read(str(config_file))
     except (configparser.MissingSectionHeaderError,
             configparser.ParsingError) as e:
         sys.exit(f'"{config_file}" is a malformed config file: {e}')
