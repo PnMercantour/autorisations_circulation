@@ -47,16 +47,33 @@ Vous devez avoir git installté afin de pouvoir cloner le repository :
 - sous mac, utilisez l'installeur officiel (https://sourceforge.net/projects/git-osx-installer/files/?SetFreedomCookie)
 - sous linux, git est dans les dépots (sudo apt-get install git or yum install git)
 
-Ensuite, on récupère le code:
+Ensuite, on récupère le code::
 
-git clone https://github.com/PnMercantour/autorisations_circulation auth_circu
+    git clone https://github.com/PnMercantour/autorisations_circulation auth_circu
 
 Il faut également virtualenv installé sur votre machine. Une installation récente de Python a généralement virtualenv pré-installé, soit sous la forme de la commande virtualenv, soit sous la forme de la commande python -m venv. Une exception notable sont les distributions linux basées sur debian (comme Ubuntu) qui ont besoin qu'on installe le package python3-virtualenv (sudo apt-get install...).
 
 Faites attention à utiliser un virtualenv installé pour Python 3 et non Python 2. 
 
-On créé un environnement virtuel:
+On créé un environnement virtuel::
 
-cd auth_circu
-virtualenv env -p /chemin/vers/python3.6 # creer l'environnement virtuel
-source env/bin/activate # activé l'env
+    cd auth_circu
+    virtualenv env -p /chemin/vers/python3.6 # creer l'environnement virtuel
+    source env/bin/activate # activer l'env
+
+On installe les dependances dans l'environnement virtuel::
+
+    pip install -r requirements.txt 
+    
+On génère un fichier de configuration::
+
+    python -m autcircu generate_config_file
+    
+Le fichier de configuration devrait ressembler à ceci:
+
+    [security]
+    database_uri = postgresql://nomutilisateur:motdepasse@host:port/nombasededonnees
+    secret_key = ga1CY.0mX[2Jcz@^+=#rPnB)"vAwr3~%QpY^Y]|=hn,!XBW(l0
+    
+ Il permett de configurer la connexion à la base de données et fournir une clé secrète qui sécurise l'authentification de l'application. Ne partagez pas son contenu. Ne le rendez pas accessible. Ne le commitez pas sur git.
+    

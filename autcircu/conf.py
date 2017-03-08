@@ -52,10 +52,10 @@ if not is_generating_config_file:
         sys.exit(f'"{config_file}" does not contain a "security" section')
 
     try:
-        sql_db_uri = security_conf['SQLALCHEMY_DATABASE_URI']
+        sql_db_uri = security_conf['DATABASE_URI']
     except KeyError:
         sys.exit(f'"{config_file}" does not contain an '
-                  '"SQLALCHEMY_DATABASE_URI" entry')
+                  '"DATABASE_URI" entry')
 
     try:
         secret_key = security_conf['SECRET_KEY']

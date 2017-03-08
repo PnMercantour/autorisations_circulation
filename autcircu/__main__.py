@@ -97,7 +97,7 @@ def generate_config_file(args):
             sys.exit('Abort')
 
     db_uri = input('Database configuration uri (it should look like '
-                   '"dbengine://username:password@host:port/dbname")\n')
+                   '"postgresql://username:password@host:port/dbname")\n')
     if not db_uri:
         sys.exit('This field is mandatory')
 
@@ -109,8 +109,8 @@ def generate_config_file(args):
         with filepath.open('w') as f:
             config = configparser.ConfigParser()
             config['security'] = {
-                'SQLALCHEMY_DATABASE_URI': db_uri,
-                'SECRET_KEY': secret_key
+                'database_uri': db_uri,
+                'secret_key': secret_key
             }
             config.write(f)
     except (IOError, OSError) as e:
