@@ -2,6 +2,7 @@
 import string
 import random
 
+import datetime
 import unicodedata
 
 from csv import DictReader
@@ -165,7 +166,9 @@ def populate_db(db=db):
             # Fetch all authorised vehicules.
             vehicules = set()
             for i in range(1, 5):
-                immat = row[f"IMMATRICULATION {i}"]
+                immat = row[f"IMMATRICULATION {i}"] or ""
+                immat = immat.upper().replace(' OU', '')
+                immat =  immat.replace('-', "").replace(' ', '')
                 if immat:
                     vehicules.add(immat)
 
@@ -240,7 +243,7 @@ def populate_db(db=db):
                 }
             )
 
-            auth_req.request_date = auth_req.auth_start_date or auth_req.auth_end_date
+            auth_req.request_date = auth_req.auth_start_date or auth_req.auth_end_date or datetime.today()
 
             for place in places:
                 auth_req.places.append(place)
