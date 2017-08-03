@@ -1,12 +1,20 @@
 import os
-
+import functools
+import operator
+import calendar
 from datetime import datetime
 
 import pypnusershub.routes
 
-from flask import render_template, send_from_directory, request, redirect, g
+from sqlalchemy.orm import joinedload, undefer
+from sqlalchemy import extract
+
+from flask import render_template, send_from_directory, request, redirect, g, jsonify
+
+from werkzeug.exceptions import BadRequest
 
 from flask_admin import Admin
+
 from flask_admin.contrib.sqla import ModelView
 
 from pypnusershub.db.models import User, db
@@ -24,8 +32,11 @@ admin.add_view(ModelView(User, db.session))
 # Auth
 app.register_blueprint(pypnusershub.routes.routes, url_prefix='/auth')
 
+
 MONTHS = [('all-months', 'tout mois')]
 MONTHS.extend((i, datetime(2008, i, 1).strftime('%B')) for i in range(1, 13))
+MONTHS_VALUES = [str(key) for key, val in MONTHS]
+
 
 AUTH_STATUS = {
     'both': "émises ou valides",
@@ -55,26 +66,17 @@ def home():
 
 
 @app.route("/authorizations/new")
-@check_auth(2, redirect_on_expiration="/")
+@check_auth(2, redirect_on_expiration="/", redirect_on_invalid_token="/")
 def auth_form():
     return render_template('auth_form.html')
 
 
 # if you change this route, change it in script.js too
 @app.route("/authorizations")
-@check_auth(1, redirect_on_expiration="/")
+@check_auth(1, redirect_on_expiration="/", redirect_on_invalid_token="/")
 def listing():
 
     now = datetime.utcnow()
-
-    selected_year = request.args.get('year')
-    if selected_year != "last-5-years":
-        selected_year = to_int(selected_year, now.year)
-
-    selected_month = request.args.get('month')
-    if selected_month != "all-months":
-        selected_month = to_int(selected_month, now.month)
-
     # Find the oldest year to start from
     oldest_auth_date = (
         AuthRequest.query
@@ -110,15 +112,190 @@ def listing():
     if selected_auth_status not in AUTH_STATUS:
         selected_auth_status = default_status
 
-    return render_template('listing.html',
-                           selected_year=selected_year,
-                           selected_month=selected_month,
-                           type=type,
-                           years=years,
-                           months=MONTHS,
-                           selected_auth_status=selected_auth_status,
-                           auth_status=AUTH_STATUS,
-                           )
+    return render_template(
+       'listing.html',
+       selected_year=now.year,
+       selected_month=now.month,
+       type=type,
+       years=years,
+       months=MONTHS,
+       selected_auth_status=selected_auth_status,
+       auth_status=AUTH_STATUS,
+    )
+
+
+@app.route('/api/v1/authorizations', methods=['GET'])
+def api_get_authorizations():
+
+    # check that the HTTP request is valid
+    try:
+        year = request.args['year']
+        if year != "last-5-years":
+            year = int(year)
+    except ValueError:
+        raise BadRequest('"year" must be an int or "last-5-years"')
+    except KeyError:
+        raise BadRequest('"year" must be provided')
+
+    try:
+        month = request.args['month']
+        if month != "all-months":
+            month = int(month)
+        if str(month) not in MONTHS_VALUES:
+            raise BadRequest(f'"month" must be among: {", ".join(MONTHS_VALUES)}')
+    except ValueError:
+        raise BadRequest('"month" must be an int or "all-months"')
+    except KeyError:
+        raise BadRequest('"month" must be provided')
+
+    try:
+        status = request.args['status']
+        if status not in AUTH_STATUS.keys():
+            raise BadRequest(f'"status" must be among: {", ".join(AUTH_STATUS.keys())}')
+    except KeyError:
+        raise BadRequest('"status" must be provided')
+
+    # Get a base query object from SQLAlchemy that we can filter
+    # later
+    auth_requests = (
+        AuthRequest.query
+                    # preload data from other table
+                    # to speed up later serialization
+                    .options(
+                        joinedload(AuthRequest.places),
+                        joinedload(AuthRequest.motive),
+                    )
+    )
+
+    # From here we start filtering authorizations requests, taking in
+    # consideration their status, month and year according to the sent
+    # HTTP parameters.
+
+    # SQLalchemy constructs that we will use later for filtering
+    extracted_creation_year = extract('year', AuthRequest.request_date)
+    extracted_auth_start_year = extract('year', AuthRequest.auth_start_date)
+    extracted_auth_end_year = extract('year', AuthRequest.auth_end_date)
+
+    now = datetime.now()
+
+    if month == "all-months": # Don't filter by months
+
+        if year == "last-5-years":  # Filter on a range of 5 years
+
+            current_year = now.year
+            five_years_ago = current_year - 5
+
+            # Keep request emitted anytime between now and 5 years ago
+            is_emitted = (
+                (five_years_ago <= extracted_creation_year) &
+                (extracted_creation_year <= current_year)
+            )
+            if status == "emitted":
+                auth_requests = auth_requests.filter(is_emitted)
+
+            # Keep authorizations active anytime between now and 5 years ago
+            is_active = (
+                (extracted_auth_start_year <= current_year) &
+                (five_years_ago <= extracted_auth_end_year)
+            )
+            if status == 'active':
+                auth_requests = auth_requests.filter(is_active)
+
+            # Keep any of the above
+            if status == "both":
+                auth_requests = auth_requests.filter(is_emitted | is_active)
+
+        else:  # Filter only on one year
+
+            # Keep requests emitted any time during this particular year
+            is_emitted = extracted_creation_year == year
+            if status == "emitted":
+                auth_requests = auth_requests.filter(is_emitted)
+
+            # Keep authorisations active any time of this particular year
+            is_active = (
+                (extracted_auth_start_year <= year) &
+                (extracted_auth_end_year >= year)
+            )
+            if status == 'active':
+                auth_requests = auth_requests.filter(is_active)
+
+            #  Keep any of the above
+            if status == "both":
+                auth_requests = auth_requests.filter(is_active | is_emitted)
+
+
+    else:  # Filter by status, year AND by month
+
+        extracted_creation_month = extract('month', AuthRequest.request_date)
+
+        if year == "last-5-years":  # Filter on a range of 5 years
+
+            current_year = now.year
+            five_years_ago = current_year - 5
+
+            # Keep requests emitted sometime between these 5 years,
+            # but on this particular month
+            is_emitted = (
+               (
+                    (five_years_ago <= extracted_creation_year) &
+                    (extracted_creation_year <= current_year)
+               ) & (extracted_creation_month == month)
+            )
+            if status == "emitted":
+                auth_requests = auth_requests.filter(is_emitted)
+
+            # Take the starting and ending date of this month for
+            # each years of the past 5 years. Then keep the authorizations
+            # that were active during at least one of those month.
+            # Keep authorizations that are still valid during one of the
+            # month
+            filters = []
+            for year in range(five_years_ago, current_year + 1):
+                month_start_date = datetime(year, month, 1)
+                month_end_date = datetime(year, month, calendar.mdays[month])
+                filters.append(
+                    (AuthRequest.auth_start_date <= month_end_date) &
+                    (AuthRequest.auth_end_date >= month_start_date)
+                )
+            is_active = functools.reduce(operator.or_, filters)
+            if status == 'active':
+                auth_requests = auth_requests.filter(is_active)
+
+            # Keep any of the above
+            if status == "both":
+                auth_requests = auth_requests.filter(is_active | is_emitted)
+
+        else:  # Filter only on one year
+
+            # Keep requests emitted any time during this particular month
+            # of this particular year
+            is_emitted = (
+                (extracted_creation_year == year) &
+                (extracted_creation_month == month)
+            )
+            if status == "emitted":
+                auth_requests = auth_requests.filter(is_emitted)
+
+            # Keep authorizations that are still valid during this particular
+            # month of this particular year
+            month_start_date = datetime(year, month, 1)
+            month_end_date = datetime(year, month, calendar.mdays[month])
+            is_active = (
+                (AuthRequest.auth_start_date <= month_end_date) &
+                (AuthRequest.auth_end_date >= month_start_date)
+            )
+            if status == 'active':
+                auth_requests = auth_requests.filter(is_active)
+
+            # Keep any of the above
+            if status == "both":
+                auth_requests = auth_requests.filter(is_active | is_emitted)
+
+    auth_requests = (auth_requests.order_by(AuthRequest.request_date.desc())
+                                  .all())
+
+    return jsonify([obj.serialize() for obj in auth_requests])
 
 
 @app.route('/favicon.ico')

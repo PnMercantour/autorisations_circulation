@@ -2,7 +2,7 @@
 from uuid import uuid4
 from datetime import date
 
-from sqlalchemy.orm import load_only, deferred
+from sqlalchemy.orm import load_only, deferred, relationship
 
 from sqlalchemy_utils import (ChoiceType, UUIDType, JSONType, Timestamp,
                               generic_repr, ScalarListType)
@@ -26,6 +26,12 @@ class RequestMotive(db.Model, Timestamp):
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
     name = db.Column(db.Unicode(256), nullable=False)
 
+    def serialize(self):
+        return {
+            "id": str(self.id),
+            "name": self.name
+        }
+
     def __repr__(self):
         return f"<RequestMotive {self.name!r}>"
 
@@ -37,6 +43,12 @@ class RestrictedPlace(db.Model, Timestamp):
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
     name = db.Column(db.Unicode(256), nullable=False)
+
+    def serialize(self):
+        return {
+            'id': str(self.id),
+            'name': self.name
+        }
 
     def __repr__(self):
         return f"<RestrictedPlace {self.name!r}>"
@@ -96,7 +108,9 @@ class AuthRequest(db.Model, Timestamp):
     number = db.Column(db.String(10), nullable=False)
 
     request_date = db.Column(db.Date, default=date.today)
-    motive = db.Column(db.ForeignKey('auth_circu.t_request_motive.id'))
+
+    motive_id = db.Column(db.ForeignKey('auth_circu.t_request_motive.id'))
+    motive = relationship("RequestMotive", backref="requests")
 
     author_gender = db.Column(ChoiceType(GENDERS), nullable=False)
     author_name = db.Column(db.Unicode(128))
@@ -104,8 +118,11 @@ class AuthRequest(db.Model, Timestamp):
     author_phone = db.Column(db.Unicode(32))
     proof_documents = db.Column(JSONType)
 
-    places = db.relationship('RestrictedPlace', secondary=request_to_place,
-                             backref='requests')
+    places = db.relationship(
+        'RestrictedPlace',
+        secondary=request_to_place,
+        backref='requests'
+    )
 
     auth_start_date = db.Column(db.Date, default=date.today)
     auth_end_date = db.Column(db.Date, default=in_one_year)
@@ -115,9 +132,47 @@ class AuthRequest(db.Model, Timestamp):
     group_vehicules_on_doc = db.Column(db.Boolean, default=False,
                                        nullable=False)
 
-    # TODO: privode boostrap templates and places, and add default value here
-    template = db.Column(db.ForeignKey('auth_circu.t_letter_template.id'))
+    # TODO: provide boostrap templates and places, and add default value here
+    template_id = db.Column(db.ForeignKey('auth_circu.t_letter_template.id'))
+    template = relationship("LetterTemplate", backref="requests")
     custom_template = deferred(db.Column(db.UnicodeText))
+
+    def serialize(self):
+
+        if self.request_date:
+            request_date = f'{self.request_date:%d/%m/%Y}'
+        else:
+            request_date = None
+
+        if self.auth_start_date:
+            auth_start_date = f'{self.auth_start_date:%d/%m/%Y}'
+        else:
+            auth_start_date = None
+
+        if self.auth_end_date:
+            auth_end_date = f'{self.auth_end_date:%d/%m/%Y}'
+        else:
+            auth_end_date = None
+
+        return {
+            'id': str(self.id),
+            'type': self.type.value,
+            'number': self.number,
+            'request_date': request_date,
+            'motive': self.motive.serialize() if self.motive else None,
+            'author_gender': self.author_gender.value,
+            'author_name': self.author_name,
+            'author_address': self.author_address,
+            'author_phone': self.author_phone,
+            'proof_documents': self.proof_documents,
+            'places': [place.serialize() for place in self.places],
+            'auth_start_date': auth_start_date,
+            'auth_end_date': auth_end_date,
+            'rules': self.rules,
+            'vehicules': self.vehicules,
+            'group_vehicules_on_doc': self.group_vehicules_on_doc,
+            'created': f'{self.created:%d/%m/%Y}'
+        }
 
     @classmethod
     def generate_number(cls, year=None, baseline=1):

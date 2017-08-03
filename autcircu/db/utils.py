@@ -35,7 +35,7 @@ def start_app_context():
     return app.app_context().push()
 
 
-def init_db(app, db=db):
+def init_db(app, db=db, debug_db=False):
     """ Create the schema and the tables if they don't exist """
 
     # init pypnusershub's db
@@ -46,7 +46,9 @@ def init_db(app, db=db):
         load_fixtures(app.config['SQLALCHEMY_DATABASE_URI'])
 
     # init aut circu's db
-    engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'])
+    engine = create_engine(
+        app.config['SQLALCHEMY_DATABASE_URI'],
+    )
     with engine.connect():
         engine.execute("CREATE SCHEMA IF NOT EXISTS auth_circu")
         engine.execute("COMMIT")
@@ -237,6 +239,8 @@ def populate_db(db=db):
                     "doc_type": None
                 }
             )
+
+            auth_req.request_date = auth_req.auth_start_date or auth_req.auth_end_date
 
             for place in places:
                 auth_req.places.append(place)

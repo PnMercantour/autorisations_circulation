@@ -6,21 +6,29 @@
 {% block h1 %}Liste des autorisations{% endblock h1 %}
 
 {% block content %}
-<section class="container">
+
+<script>
+  // On first load, we get immediate value for pagination
+  // instead of waiting for an AJAX request.
+  window.PRELOAD_PAGINATION = {
+    status: "{{ selected_auth_status }}",
+    month: "{{ selected_month }}",
+    year: "{{ selected_year }}"
+  }
+</script>
+
+<section class="container" ng-controller="AuthListingCtrl as vm">
 
 
   <header class="listing-header row">
     <nav class="col-lg-7 col-md-12">
       <ul>
-        <li class="previous">
-          <a href="#">
-            <span class="glyphicon glyphicon-chevron-left"></span>
-          </a>
-        </li>
 
         <li>
           <label>Autorisations</label>
-          <select name="auth_type">
+          <select name="auth_type"
+                  ng-change="vm.refresh()"
+                  ng-model="vm.pagination.status">
             {% for value, name in auth_status.items() %}
               <option value="{{ value }}"
                       {% if value == selected_auth_status %}selected{% endif %}>
@@ -31,7 +39,9 @@
         </li>
         <li>
           <label>en</label>
-          <select name="month">
+          <select name="month"
+                  ng-change="vm.refresh()"
+                  ng-model="vm.pagination.month">
 
             {% for i, month in months %}
               <option value="{{ i }}"
@@ -43,9 +53,11 @@
         </li>
 
         <li>
-          <select name="year">
+          <select name="year"
+                  ng-change="vm.refresh()"
+                  ng-model="vm.pagination.year">
             {% for value, name in years %}
-              <option value="year"
+              <option value="{{ value }}"
                       {% if value == selected_year %}selected{% endif %}>
                 {{ name }}
               </option>
@@ -54,11 +66,7 @@
 
         </li>
 
-        <li class="next">
-          <a href="#">
-            <span class="glyphicon glyphicon-chevron-right"></span>
-          </a>
-        </li>
+
       </ul>
     </nav>
 
@@ -74,7 +82,24 @@
 
   </header>
 
-  <table class="table auth-list">
+
+ <div ng-show="vm.loading" class="loading">
+      <p ng-hide="vm.error">
+        <img src="/static/img/spinner.gif" class="spinner" />
+        Chargement des autorisations
+      </p>
+      <p ng-show="vm.error" class="alert alert-warning ng-cloak">
+      {% raw %}
+        {{ vm.error }}
+      {% endraw %}
+      </p>
+  </div>
+
+  <p ng-hide="vm.loading || vm.authorizations.listing.length" class="alert alert-success">
+    Aucune autorisation trouvée
+  </p>
+
+  <table ng-hide="vm.loading" class="table auth-list ng-cloak">
 
     <thead>
       <tr>
@@ -88,49 +113,61 @@
     </thead>
 
     <tbody>
-      <tr>
-        <td class="date"><span>Du 10/01/2017</span> <span>au 10/01/2018</span></td>
-        <td class="candidate">
-          <strong>M. Ian Itor</strong> <br>
-          23 ave du Plot perdu, 06100 Nice<br>
-          (0692898212)
+
+      <tr ng-repeat="auth in vm.authorizations.listing">
+        {% raw %}
+        <td class="date">
+            <span ng-if="auth.auth_start_date">
+              Début : {{ auth.auth_start_date }}
+            </span>
+            <span class="hide"
+                  ng-if="auth.auth_start_date && auth.auth_end_date">
+              -
+            </span>
+            <span ng-if="auth.auth_end_date">
+              Fin : {{ auth.auth_end_date }}
+            </span>
         </td>
-        <td>Salèse, Piste 1, UP 2, Salèse, Pisfdsfqfdqfdsfdqfdsqfdsq ffdqs qdsfqsdfte 1, UP 2, Salèse, Piste 1, UP 2</td>
-        <td>678 JK 78, 456 IO 32</td>
+
+
+        <td class="candidate">
+          <p ng-if="auth.author_name">
+            <strong>
+              <span ng-switch on="auth.author_gender">
+                  <span ng-switch-when="Homme">
+                      M.
+                  </span>
+                  <span ng-switch-when="Femme">
+                      Mme.
+                  </span>
+                  <span ng-switch-default></span>
+              </span>
+              {{ auth.author_name }}
+            </strong>
+          </p>
+          <p ng-if="auth.author_address">
+            {{ auth.author_address }}
+          </p>
+          <p ng-if="auth.author_phone">
+            ({{ auth.author_phone }})
+          </p>
+        </td>
+
+        <td>{{ auth.places|join:', ':'name'}}</td>
+
+        <td>{{ auth.vehicules|join:', '}}</td>
 
         <td class="document">
-          <a href="#">2017-C0001 </a>
+          <a href="#">2017-C0001 (TODO)</a>
         </td>
 
         <td class="edit">
           <a href="/"><span class="glyphicon glyphicon-pencil"></span></a>
           <a href="/"><span class="glyphicon glyphicon-duplicate"></span></a>
+          {{ auth.id }} - {{ auth.created }}
         </td>
 
-      </tr>
-
-<tr>
-        <td class="date">Du 10/01/2017<br> au 10/01/2018</td>
-        <td class="candidate">
-          <strong>M. Ian Itor</strong> <br>
-          23 ave du Plot perdu, 06100 Nice<br>
-          (0692898212)
-        </td>
-        <td>Salèse, Piste 1, UP 2, Salèse, Pisfdsfqfdqfdsfdqfdsqfdsq ffdqs qdsfqsdfte 1, UP 2, Salèse, Piste 1, UP 2</td>
-        <td>678 JK 78, 456 IO 32</td>
-
-        <td class="document">
-          <a href="#">2017-C0001 </a>
-        </td>
-
-        <td class="edit">
-          <a href="/">
-            <span class="glyphicon glyphicon-pencil"></span>
-          </a>
-          <a href="/">
-            <span class="glyphicon glyphicon-duplicate"></span>
-          </a>
-        </td>
+        {% endraw %}
 
       </tr>
 
@@ -139,8 +176,13 @@
   </table>
 
 
-  <footer class="listing-footer">
-    <p><strong>Total</strong>: 2</p>
+  <footer class="listing-footer" ng-hide="vm.loading" class="ng-cloak">
+    {% raw %}
+    <p>
+      <strong>Total</strong>:
+      {{ vm.authorizations.listing.length }}
+    </p>
+    {% endraw %}
     <dl>
       <dt>Exporter cette liste en:</dt>
 

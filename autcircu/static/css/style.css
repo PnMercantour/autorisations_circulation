@@ -10,6 +10,11 @@ Global
   cursor: pointer;
 }
 
+/* Prevent angular syntax flashing */
+.ng-cloak {
+  display: none !important;
+}
+
 
 /* Header */
 
@@ -68,6 +73,7 @@ HOME PAGE
 
 #home {
   background-color: #5EAE27;
+  height: 100vh;
 }
 
 .jumbotron {
@@ -115,6 +121,15 @@ LISTING PAGE
   height:1.5rem;
 }
 
+#listing .loading {
+  text-align: center;
+}
+
+#listing .loading img{
+  margin-right: 1rem;
+}
+
+
 /* Header */
 
 #listing .listing-header {
@@ -125,17 +140,7 @@ LISTING PAGE
   display: inline-block;
 }
 
-#listing .listing-header li.previous,
-#listing .listing-header li.next{
-  font-size: 2.5rem;
-  vertical-align: middle;
-  color: #5EAE27;
-}
 
-#listing .listing-header li.previous a,
-#listing .listing-header li.next a {
-  color: #5EAE27;
-}
 
 #listing .listing-header .search{
   margin: 1rem 0;
@@ -145,6 +150,7 @@ LISTING PAGE
 
 #listing .auth-list .date {
   min-width: 15ex;
+  white-space: nowrap;
 }
 
 #listing .auth-list .date span {
@@ -155,6 +161,11 @@ LISTING PAGE
 #listing .auth-list .candidate {
   min-width: 35ex;
 }
+
+#listing .auth-list .candidate p {
+  margin-bottom: 0;
+}
+
 
 
 #listing .auth-list .document {
@@ -226,7 +237,10 @@ LISTING PAGE
   }
 
   #listing .auth-list .date span {
-    display: inline;
+    display: inline !important; /* Also show the separator*/
+  }
+
+  #listing .auth-list .date span.hide {
   }
 
 }

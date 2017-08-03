@@ -10,6 +10,8 @@ from textwrap import dedent
 
 from flask import Flask
 
+#TODO: ANONYMISER LES DONNEES DE TEST
+
 LOCALE = ('fr_FR', 'UTF-8')
 
 try:

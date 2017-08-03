@@ -76,4 +76,9 @@ Le fichier de configuration devrait ressembler à ceci:
     secret_key = ga1CY.0mX[2Jcz@^+=#rPnB)"vAwr3~%QpY^Y]|=hn,!XBW(l0
     
  Il permett de configurer la connexion à la base de données et fournir une clé secrète qui sécurise l'authentification de l'application. Ne partagez pas son contenu. Ne le rendez pas accessible. Ne le commitez pas sur git.
-    
+ 
+Assurez-vous également que côté base de données:
+
+- vous avez une version suffisament récente de postgres (9.5 ou plus)
+- l'utilisateur a le droit de créer un schéma dans la base (même si le schéma existe déjà). Exemple en faisant: GRANT CREATE ON DATABASE nom_data_base TO nom_utilisateur;
+
