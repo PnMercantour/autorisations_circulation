@@ -70,21 +70,30 @@ app.service('storage', function(){
 });
 
 
-app.controller('AuthListingCtrl', function($interval, AuthListing, storage){
+app.controller('AuthListingCtrl', function(
+  $interval,
+  AuthListing,
+  storage,
+  $location
+) {
   var vm = this;
 
   // trick to avoid an AJAX request on first load. This
   // data is inlined in the HTML page.
   // We also store it in local storage to
   // keep the last used value at the next reload
-  vm.pagination = storage.get('pagination', window.PRELOAD_PAGINATION);
-  storage.set('pagination', vm.pagination);
+  var cache = storage.get('pagination', window.PRELOAD_PAGINATION);
+  var queryString = $location.search();
+  vm.pagination = angular.merge({}, cache, queryString);
 
   vm.authorizations = AuthListing;
   vm.loading = true;
   vm.error = '';
 
-  vm.refresh = function(){
+  vm.refreshPagination = function(){
+    Object.entries(vm.pagination).forEach(function(params){
+      $location.search(params[0], params[1]);
+    });
     storage.set('pagination', vm.pagination);
     vm.loading = true;
     vm.error = "";
@@ -104,7 +113,7 @@ app.controller('AuthListingCtrl', function($interval, AuthListing, storage){
     });
   }
 
-  vm.refresh();
+  vm.refreshPagination();
 
 })
 

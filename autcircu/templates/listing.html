@@ -27,7 +27,7 @@
         <li>
           <label>Autorisations</label>
           <select name="auth_type"
-                  ng-change="vm.refresh()"
+                  ng-change="vm.refreshPagination()"
                   ng-model="vm.pagination.status">
             {% for value, name in auth_status.items() %}
               <option value="{{ value }}"
@@ -40,7 +40,7 @@
         <li>
           <label>en</label>
           <select name="month"
-                  ng-change="vm.refresh()"
+                  ng-change="vm.refreshPagination()"
                   ng-model="vm.pagination.month">
 
             {% for i, month in months %}
@@ -54,7 +54,7 @@
 
         <li>
           <select name="year"
-                  ng-change="vm.refresh()"
+                  ng-change="vm.refreshPagination()"
                   ng-model="vm.pagination.year">
             {% for value, name in years %}
               <option value="{{ value }}"
