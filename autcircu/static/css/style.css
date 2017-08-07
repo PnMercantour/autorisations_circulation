@@ -141,9 +141,25 @@ LISTING PAGE
 }
 
 
-
 #listing .listing-header .search{
   margin: 1rem 0;
+}
+
+#listing .listing-header .search input{
+  padding-right: 5rem;
+}
+
+
+#listing .listing-header .glyphicon-remove-circle {
+    position: absolute;
+    right: 5rem;
+    bottom: 0;
+    height: 14px;
+    margin: auto;
+    font-size: 14px;
+    cursor: pointer;
+    color: #ccc;
+    z-index: 99;
 }
 
 /* Listing */

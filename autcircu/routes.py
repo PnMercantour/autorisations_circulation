@@ -121,6 +121,7 @@ def listing():
        months=MONTHS,
        selected_auth_status=selected_auth_status,
        auth_status=AUTH_STATUS,
+       searched_terms=request.args.get('search', '')
     )
 
 

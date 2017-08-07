@@ -13,21 +13,24 @@
   window.PRELOAD_PAGINATION = {
     status: "{{ selected_auth_status }}",
     month: "{{ selected_month }}",
-    year: "{{ selected_year }}"
+    year: "{{ selected_year }}",
+    search: "{{ searched_terms }}"
   }
 </script>
 
 <section class="container" ng-controller="AuthListingCtrl as vm">
 
 
-  <header class="listing-header row">
+  <header class="listing-header row"
+          on-escape="vm.onClearSearch()"
+          >
     <nav class="col-lg-7 col-md-12">
       <ul>
 
         <li>
           <label>Autorisations</label>
           <select name="auth_type"
-                  ng-change="vm.refreshPagination()"
+                  ng-change="vm.refreshDateFilter()"
                   ng-model="vm.pagination.status">
             {% for value, name in auth_status.items() %}
               <option value="{{ value }}"
@@ -40,7 +43,7 @@
         <li>
           <label>en</label>
           <select name="month"
-                  ng-change="vm.refreshPagination()"
+                  ng-change="vm.refreshDateFilter()"
                   ng-model="vm.pagination.month">
 
             {% for i, month in months %}
@@ -54,7 +57,7 @@
 
         <li>
           <select name="year"
-                  ng-change="vm.refreshPagination()"
+                  ng-change="vm.refreshDateFilter()"
                   ng-model="vm.pagination.year">
             {% for value, name in years %}
               <option value="{{ value }}"
@@ -70,14 +73,22 @@
       </ul>
     </nav>
 
-    <div class="input-group search" class="col-lg-5 col-md-12">
-      <input type="text" class="form-control"
-            placeholder="Ex: Salèze + VM 89">
-      <span class="input-group-btn">
-        <button class="btn btn-default" type="button">
-          <span class="glyphicon glyphicon-search"></span>
-        </button>
-      </span>
+    <div>
+      <form action="." ng-submit="vm.onSubmitSearch($event)"
+            class="input-group search" class="col-lg-5 col-md-12">
+        <input type="text" class="form-control"
+               placeholder="Ex: Salèze + VM 89"
+               ng-model="vm.search"
+        >
+        <span id="searchclear"
+              ng-click="vm.onClearSearch()"
+              class="glyphicon glyphicon-remove-circle"></span>
+        <span class="input-group-btn">
+          <button class="btn btn-default" type="submit">
+            <span class="glyphicon glyphicon-search"></span>
+          </button>
+        </span>
+      </form>
     </div>
 
   </header>
@@ -95,7 +106,8 @@
       </p>
   </div>
 
-  <p ng-hide="vm.loading || vm.authorizations.listing.length" class="alert alert-success">
+  <p ng-hide="vm.loading || vm.filteredListing.length"
+     class="alert alert-success">
     Aucune autorisation trouvée
   </p>
 
@@ -114,7 +126,7 @@
 
     <tbody>
 
-      <tr ng-repeat="auth in vm.authorizations.listing">
+      <tr ng-repeat="auth in vm.filteredListing">
         {% raw %}
         <td class="date">
             <span ng-if="auth.auth_start_date">
@@ -180,7 +192,7 @@
     {% raw %}
     <p>
       <strong>Total</strong>:
-      {{ vm.authorizations.listing.length }}
+      {{ vm.filteredListing.length }}
     </p>
     {% endraw %}
     <dl>
