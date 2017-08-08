@@ -46,7 +46,7 @@
         <a class="dropdown-toggle" data-toggle="dropdown" role="button"
            aria-haspopup="true" aria-expanded="false" uib-dropdown-toggle>
            <span class="glyphicon glyphicon-user"></span>
-           <span class="visible-lg-inline-block">Samuel Priou</span>
+           <span class="visible-lg-inline-block">{{ user.identifiant }}</span>
            <span class=" caret"></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
@@ -71,8 +71,13 @@
         type="text/javascript" charset="utf-8" ></script>
 <script src="{{ url_for('static', filename='js/angular/ui-bootstrap.js') }}"
         type="text/javascript" charset="utf-8" ></script>
+<script src="{{ url_for('static', filename='js/FileSaver.js') }}"
+        type="text/javascript" charset="utf-8" ></script>
 <script src="{{ url_for('static', filename='js/script.js') }}"
         type="text/javascript" charset="utf-8" ></script>
+
+
+
 
 
 </body>

@@ -4,6 +4,8 @@ import operator
 import calendar
 from datetime import datetime
 
+import flask_excel
+
 import pypnusershub.routes
 
 from sqlalchemy.orm import joinedload, undefer
@@ -32,6 +34,7 @@ admin.add_view(ModelView(User, db.session))
 # Auth
 app.register_blueprint(pypnusershub.routes.routes, url_prefix='/auth')
 
+flask_excel.init_excel(app)
 
 MONTHS = [('all-months', 'tout mois')]
 MONTHS.extend((i, datetime(2008, i, 1).strftime('%B')) for i in range(1, 13))
@@ -51,6 +54,10 @@ def to_int(obj, default):
     except (TypeError, ValueError):
         return default
 
+
+@app.context_processor
+def inject_user():
+    return dict(user=g.user)
 
 @app.route("/")
 def home():
@@ -123,6 +130,52 @@ def listing():
        auth_status=AUTH_STATUS,
        searched_terms=request.args.get('search', '')
     )
+
+
+@app.route('/exports/authorizations', methods=['post'])
+def export_authorizations():
+    try:
+        authorizations = request.json['authorizations']
+    except KeyError:
+        raise BadRequest('"Authorizations" must be provided')
+
+    header = [
+        'Dates',
+        'Auteur',
+        'Adresse',
+        'Lieux',
+        'Véhicules',
+    ]
+
+    rows = [header]
+    for auth in authorizations:
+
+        dates = ''
+        start = auth.get('auth_start_date', '')
+        if start:
+            dates = f"Début: {start}"
+        end = auth.get('auth_end_date', '')
+        if end:
+            if start:
+                dates += " - "
+            dates += end
+
+        name = {
+            'Homme': 'M. ',
+            'Femme': 'Mme. ',
+            'N/A': ''
+        }[auth.get('author_gender', 'N/A')]
+        name += auth.get('author_name') or ''
+
+        rows.append([
+            dates,
+            name,
+            auth.get('author_address', ''),
+            ', '.join(place['name'] for place in auth.get('places', [])),
+            ', '.join(auth.get('vehicules', []))
+        ])
+
+    return flask_excel.make_response_from_array(rows, "ods")
 
 
 @app.route('/api/v1/authorizations', methods=['GET'])

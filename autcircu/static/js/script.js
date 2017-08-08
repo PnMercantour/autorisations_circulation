@@ -129,13 +129,13 @@ app.service('storage', function(){
 
 
 app.controller('AuthListingCtrl', function(
-  $interval,
   AuthListing,
   storage,
   $location,
   $filter,
   $scope,
-  $timeout
+  $timeout,
+  $http
 ) {
   var vm = this;
   var normalize = $filter('normalize');
@@ -242,6 +242,25 @@ app.controller('AuthListingCtrl', function(
         vm.loading = false;
       })
     }
+  }
+
+  vm.onDownloadODS = function(){
+    return $http.post(
+        "/exports/authorizations?format=ods",
+        {
+            authorizations: vm.authorizations.filteredListing
+        },
+        {
+          responseType: 'arraybuffer'
+        }
+    ).then(function(response) {
+        var blob = new Blob(
+            [response.data],
+            {type: "application/vnd.oasis.opendocument.spreadsheet;charset=charset=utf-8"}
+        );
+        var date = $filter('date')(new Date(), "yyyy-MM-dd_hh'h'mm'm'ss's'");
+        saveAs(blob, `authorizations.${date}.ods`);
+    });
   }
 
   // populate de listing
