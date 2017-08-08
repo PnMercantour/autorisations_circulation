@@ -3,20 +3,32 @@ import functools
 import operator
 import calendar
 from datetime import datetime
+from io import BytesIO
+
+import jinja2
 
 import flask_excel
+
+import weasyprint
 
 import pypnusershub.routes
 
 from sqlalchemy.orm import joinedload, undefer
 from sqlalchemy import extract
 
-from flask import render_template, send_from_directory, request, redirect, g, jsonify
+from flask import (
+    render_template,
+    send_from_directory,
+    request,
+    redirect,
+    g,
+    jsonify,
+    send_file
+)
 
 from werkzeug.exceptions import BadRequest
 
 from flask_admin import Admin
-
 from flask_admin.contrib.sqla import ModelView
 
 from pypnusershub.db.models import User, db
@@ -153,12 +165,10 @@ def export_authorizations():
         dates = ''
         start = auth.get('auth_start_date', '')
         if start:
-            dates = f"Début: {start}"
+            dates = f"Début: {start}\n"
         end = auth.get('auth_end_date', '')
         if end:
-            if start:
-                dates += " - "
-            dates += end
+            dates += f'Fin: {end}'
 
         name = {
             'Homme': 'M. ',
@@ -170,12 +180,19 @@ def export_authorizations():
         rows.append([
             dates,
             name,
-            auth.get('author_address', ''),
+            auth.get('author_address') or '',
             ', '.join(place['name'] for place in auth.get('places', [])),
             ', '.join(auth.get('vehicules', []))
         ])
 
-    return flask_excel.make_response_from_array(rows, "ods")
+    if request.args.get('format', 'ods') != 'pdf':
+        return flask_excel.make_response_from_array(rows, "ods")
+    else:
+        template = app.jinja_env.get_template('pdf-export.html')
+        now = f'{datetime.now():%d/%m/%Y}'
+        rendered = template.render(auth_requests=rows, date=now)
+        pdf = BytesIO(weasyprint.HTML(string=rendered).write_pdf())
+        return send_file(pdf, attachment_filename='authorizations.pdf')
 
 
 @app.route('/api/v1/authorizations', methods=['GET'])

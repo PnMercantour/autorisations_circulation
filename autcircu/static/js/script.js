@@ -247,12 +247,8 @@ app.controller('AuthListingCtrl', function(
   vm.onDownloadODS = function(){
     return $http.post(
         "/exports/authorizations?format=ods",
-        {
-            authorizations: vm.authorizations.filteredListing
-        },
-        {
-          responseType: 'arraybuffer'
-        }
+        {authorizations: vm.authorizations.filteredListing},
+        {responseType: 'arraybuffer'}
     ).then(function(response) {
         var blob = new Blob(
             [response.data],
@@ -260,6 +256,21 @@ app.controller('AuthListingCtrl', function(
         );
         var date = $filter('date')(new Date(), "yyyy-MM-dd_hh'h'mm'm'ss's'");
         saveAs(blob, `authorizations.${date}.ods`);
+    });
+  }
+
+  vm.onDownloadPDF = function(){
+    return $http.post(
+        "/exports/authorizations?format=pdf",
+        {authorizations: vm.authorizations.filteredListing},
+        {responseType: 'arraybuffer'}
+    ).then(function(response) {
+        var blob = new Blob(
+            [response.data],
+            {type: "application/pdf"}
+        );
+        var date = $filter('date')(new Date(), "yyyy-MM-dd_hh'h'mm'm'ss's'");
+        saveAs(blob, `authorizations.${date}.pdf`);
     });
   }
 
