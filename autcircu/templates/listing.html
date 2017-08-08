@@ -7,7 +7,9 @@
 
 {% block content %}
 
+
 <script>
+
   // On first load, we get immediate value for pagination
   // instead of waiting for an AJAX request.
   window.PRELOAD_PAGINATION = {
@@ -79,6 +81,7 @@
         <input type="text" class="form-control"
                placeholder="Ex: Salèze + VM 89"
                ng-model="vm.search"
+               ng-change="vm.onChange()"
         >
         <span id="searchclear"
               ng-click="vm.onClearSearch()"
@@ -106,7 +109,7 @@
       </p>
   </div>
 
-  <p ng-hide="vm.loading || vm.filteredListing.length"
+  <p ng-hide="vm.loading || vm.authorizations.filteredListing.length"
      class="alert alert-success">
     Aucune autorisation trouvée
   </p>
@@ -126,48 +129,45 @@
 
     <tbody>
 
-      <tr ng-repeat="auth in vm.filteredListing">
+      <tr ng-repeat="auth in vm.authorizations.filteredListing track by auth.id">
         {% raw %}
         <td class="date">
-            <span ng-if="auth.auth_start_date">
-              Début : {{ auth.auth_start_date }}
+            <span ng-if="::auth.auth_start_date">
+              Début : {{ ::auth.auth_start_date }}
             </span>
             <span class="hide"
-                  ng-if="auth.auth_start_date && auth.auth_end_date">
+                  ng-if="::auth.auth_start_date && auth.auth_end_date">
               -
             </span>
-            <span ng-if="auth.auth_end_date">
-              Fin : {{ auth.auth_end_date }}
+            <span ng-if="::auth.auth_end_date">
+              Fin : {{ ::auth.auth_end_date }}
             </span>
         </td>
 
 
         <td class="candidate">
-          <p ng-if="auth.author_name">
+          <p ng-if="::auth.author_name">
             <strong>
-              <span ng-switch on="auth.author_gender">
-                  <span ng-switch-when="Homme">
-                      M.
-                  </span>
-                  <span ng-switch-when="Femme">
-                      Mme.
-                  </span>
-                  <span ng-switch-default></span>
+              <span ng-if="::auth.author_gender === 'Homme'">
+                  M.
               </span>
-              {{ auth.author_name }}
+              <span ng-if="::auth.author_gender === 'Femme'">
+                  Mme.
+              </span>
+              {{ ::auth.author_name }}
             </strong>
           </p>
-          <p ng-if="auth.author_address">
-            {{ auth.author_address }}
+          <p ng-if"::auth.author_address">
+            {{ ::auth.author_address }}
           </p>
-          <p ng-if="auth.author_phone">
-            ({{ auth.author_phone }})
+          <p ng-if="::auth.author_phone">
+            ({{ ::auth.author_phone }})
           </p>
         </td>
 
-        <td>{{ auth.places|join:', ':'name'}}</td>
+        <td>{{ ::auth.places|join:', ':'name'}}</td>
 
-        <td>{{ auth.vehicules|join:', '}}</td>
+        <td>{{ ::auth.vehicules|join:', '}}</td>
 
         <td class="document">
           <a href="#">2017-C0001 (TODO)</a>
@@ -192,7 +192,7 @@
     {% raw %}
     <p>
       <strong>Total</strong>:
-      {{ vm.filteredListing.length }}
+      {{ vm.authorizations.filteredListing.length }}
     </p>
     {% endraw %}
     <dl>

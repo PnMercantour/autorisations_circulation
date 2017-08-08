@@ -35,10 +35,16 @@ app.controller('LoginFormCtrl', function($http){
   }
 });
 
-app.service('AuthListing', function($http){
+app.service('AuthListing', function($http, $filter){
+
   var service = this;
+  var angularFilter = $filter('filter');
+  var normalize = $filter('normalize');
+
   service.listing = [];
-  service.load_authorizations = function(year, month, status){
+  service.filteredListing = []
+
+  service.loadAuthorizations = function(year, month, status){
     return $http.get(
       "/api/v1/authorizations",
       {
@@ -52,116 +58,28 @@ app.service('AuthListing', function($http){
         service.listing = response.data;
     });
   }
-})
 
+  service.filterAuthorizations = function(filters){
 
-app.service('storage', function(){
-  var service = this;
-  service.get = function(key, defaultValue){
-    var res = localStorage.getItem(key);
-    if (res === null){
-      return defaultValue;
-    }
-    return JSON.parse(res);
-  };
-  service.set = function(key, value){
-    localStorage.setItem(key, JSON.stringify(value));
-  };
-});
-
-
-app.controller('AuthListingCtrl', function(
-  $interval,
-  AuthListing,
-  storage,
-  $location,
-  $filter,
-  $scope,
-  $timeout
-) {
-  var vm = this;
-
-  // Get the pagination values from several sources: the URL parameters,
-  // the localStorage or the preloaded values from the server.
-  var cache = storage.get('pagination', window.PRELOAD_PAGINATION);
-  var queryString = $location.search();
-  // search is an array so we deserialize it
-  queryString.search = queryString.search ? JSON.parse(queryString.search) : [];
-  vm.pagination = angular.merge({}, cache, queryString);
-
-  vm.authorizations = AuthListing;
-  vm.loading = true;
-  vm.error = '';
-  vm.search = '';
-  vm.filteredListing = []
-
-  vm.savePagination = function(){
-    // Update the pagination values in the URL and local storage so that
-    // we get them back if we come back later
-    for (var [name, value] of Object.keys(vm.pagination)){
-      // search is an array so we serialize it
-      if (name === "search"){
-        value = JSON.stringify(value);
-      }
-      $location.search(name, value);
-    }
-    storage.set('pagination', vm.pagination);
-  }
-
-  vm.refreshDateFilter = function(){
-
-    vm.savePagination();
-
-    // Update the listing with new data from the server with an Ajax call.;
-    vm.loading = true;
-    vm.error = "";
-    return vm.authorizations.load_authorizations(
-      vm.pagination.year,
-      vm.pagination.month,
-      vm.pagination.status
-    ).then(function(){
-      vm.refreshSearchFilter();
-      vm.loading = false;
-    }, function(error){
-      if (error.status === -1){
-        vm.error = "Impossible de charger la liste des autorisations. Vérifiez que votre connexion, puis rechargez cette page."
-      } else {
-        vm.error = "Erreur en chargant la liste des autorisations. Rechargez la page. Si ce message ne disparait pas, contactez un administrateur.";
-        console.error('Error loading the auth listing:', error.data)
-      }
-    });
-  }
-
-  vm.refreshSearchFilter = function(){
-
-    var normalize = $filter('normalize');
-
-    var filters = vm.search.trim();
-    // shortcut when there is no need to filter
-    if (!filters){
-      vm.filteredListing = vm.authorizations.listing;
+    if (!filters.length){
+      service.filteredListing = service.listing;
       return
     }
 
-    filters = filters.split(/[\s+\+?\s+]+/).map(function(filter){
-        return normalize(filter);
-    });
+    service.filteredListing =  angularFilter(
 
-    var filterSize = filters.length;
+      service.listing,
 
-    vm.filteredListing =  $filter('filter')(
-
-      vm.authorizations.listing,
-
-      function(authRequest, index, array) {
+      // this function is going to be called quite often, so we use regular
+      // loops to avoid to many function calls
+      function (authRequest, index, array) {
 
         var ok = false;
 
         // all filters must be ok
-        mainLoop: for (var i = 0; i < filterSize; i++){
+        mainLoop: for (var i = 0; i < filters.length; i++){
 
           var filter = filters[i];
-
 
           // check the request author name
           if (normalize(authRequest.author_name || '').indexOf(filter) !== -1){
@@ -191,11 +109,106 @@ app.controller('AuthListingCtrl', function(
       }
 
     );
+  }
+})
 
 
+app.service('storage', function(){
+  var service = this;
+  service.get = function(key, defaultValue){
+    var res = localStorage.getItem(key);
+    if (res === null){
+      return defaultValue;
+    }
+    return JSON.parse(res);
+  };
+  service.set = function(key, value){
+    localStorage.setItem(key, JSON.stringify(value));
+  };
+});
+
+
+app.controller('AuthListingCtrl', function(
+  $interval,
+  AuthListing,
+  storage,
+  $location,
+  $filter,
+  $scope,
+  $timeout
+) {
+  var vm = this;
+  var normalize = $filter('normalize');
+
+  // Get the pagination values from several sources: the URL parameters,
+  // the localStorage or the preloaded values from the server.
+  var cache = storage.get('pagination', window.PRELOAD_PAGINATION);
+  var queryString = $location.search();
+  // search is an array so we deserialize it
+  queryString.search = queryString.search ? JSON.parse(queryString.search) : [];
+  vm.pagination = angular.merge({}, cache, queryString);
+
+  vm.authorizations = AuthListing;
+  vm.loading = true;
+  vm.error = '';
+  vm.search = '';
+
+
+  vm.savePagination = function(){
+    // Update the pagination values in the URL and local storage so that
+    // we get them back if we come back later
+    for (var [name, value] of Object.keys(vm.pagination)){
+      // search is an array so we serialize it
+      if (name === "search"){
+        value = JSON.stringify(value);
+      }
+      $location.search(name, value);
+    }
+    storage.set('pagination', vm.pagination);
   }
 
-  vm.refreshDateFilter();
+  vm.refreshDateFilter = function(){
+
+    vm.savePagination();
+
+    // Update the listing with new data from the server with an Ajax call.;
+    vm.loading = true;
+    vm.error = "";
+    return vm.authorizations.loadAuthorizations(
+      vm.pagination.year,
+      vm.pagination.month,
+      vm.pagination.status
+    ).then(function(){
+      vm.refreshSearchFilter();
+      vm.loading = false;
+    }, function(error){
+      if (error.status === -1){
+        vm.error = "Impossible de charger la liste des autorisations. Vérifiez que votre connexion, puis rechargez cette page."
+      } else {
+        vm.error = "Erreur en chargant la liste des autorisations. Rechargez la page. Si ce message ne disparait pas, contactez un administrateur.";
+        console.error('Error loading the auth listing:', error.data)
+      }
+    });
+  }
+
+  vm.refreshSearchFilter = function(){
+
+    var filters = vm.search.trim();
+
+    if (filters) {
+      filters = filters.split(/[\s+\+?\s+]+/).map(function(filter){
+          return normalize(filter);
+      });
+    } else {
+      filters = [];
+    }
+
+    vm.authorizations.filterAuthorizations(filters);
+  }
+
+
+  // We use $timeout here to space digests and ensure we see the loading
+  // wheel
 
   // triggered when we submit the search form with  click or "enter"
   // to filter the listing
@@ -218,6 +231,21 @@ app.controller('AuthListingCtrl', function(
       vm.loading = false;
     })
   }
+
+  // triggered every time we change the searched team. Update the listing
+  // when empty
+  vm.onChange = function(){
+    if (!vm.search){
+      vm.loading = true
+      $timeout(function(){
+        vm.refreshSearchFilter();
+        vm.loading = false;
+      })
+    }
+  }
+
+  // populate de listing
+  vm.refreshDateFilter();
 })
 
 app.controller('RequestFormCtrl', function () {
