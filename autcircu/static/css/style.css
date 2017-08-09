@@ -129,6 +129,14 @@ LISTING PAGE
   margin-right: 1rem;
 }
 
+#listing .modal-body {
+  text-align: center;
+}
+
+#listing .modal-body img {
+  margin-right: 1rem;
+}
+
 
 /* Header */
 

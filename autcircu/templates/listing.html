@@ -220,5 +220,18 @@
     </dl>
   </footer>
 
+  <script type="text/ng-template" id="loading-modal.html">
+      <div class="modal-header">
+          <h3 class="modal-title" id="modal-title">Veuillez patienter</h3>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <img src="/static/img/spinner.gif" class="spinner" />
+        Préparation du document
+      </div>
+      <div class="modal-footer">
+          <button class="btn btn-warning" type="button" ng-click="vm.cancel()">Cancel</button>
+      </div>
+  </script>
+
 </section>
 {% endblock content %}

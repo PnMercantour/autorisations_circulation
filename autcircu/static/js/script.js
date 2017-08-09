@@ -135,7 +135,9 @@ app.controller('AuthListingCtrl', function(
   $filter,
   $scope,
   $timeout,
-  $http
+  $http,
+  $uibModal,
+  $q
 ) {
   var vm = this;
   var normalize = $filter('normalize');
@@ -245,33 +247,88 @@ app.controller('AuthListingCtrl', function(
   }
 
   vm.onDownloadODS = function(){
+
+    // Display a modal windows with a spinner while the document is
+    // being generated. We also want that if the document takes too long
+    // to be created, the user can cancel the request by clicking on the
+    // cancel button.
+    var canceler = $q.defer();
+
+    // show modal with spinner
+    var modalWindow = $uibModal.open({
+      templateUrl: 'loading-modal.html',
+      controllerAs: 'vm',
+      controller: function ($uibModalInstance) {
+        this.cancel = function () {
+          // dismiss the windows if the cancel button is clicked
+          canceler.resolve()
+          $uibModalInstance.dismiss('cancel');
+        };
+      }
+    });
+
+    // if cancel button has been clicked, we abort the request
+    modalWindow.result.then(function(){}, canceler.resolve);
+
+    // make the AJAX request to get the document
     return $http.post(
         "/exports/authorizations?format=ods",
         {authorizations: vm.authorizations.filteredListing},
-        {responseType: 'arraybuffer'}
+        {responseType: 'arraybuffer', timeout: canceler.promise}
     ).then(function(response) {
+        // document is generated, close the modal and prompt for download
+        modalWindow.close()
         var blob = new Blob(
             [response.data],
             {type: "application/vnd.oasis.opendocument.spreadsheet;charset=charset=utf-8"}
         );
         var date = $filter('date')(new Date(), "yyyy-MM-dd_hh'h'mm'm'ss's'");
         saveAs(blob, `authorizations.${date}.ods`);
+
+    }, function(error){
+      if (error.status !== -1){ // ignore error from the user aborting the request
+        console.error("Error while exporting to ODS", error);
+      }
     });
+
   }
 
   vm.onDownloadPDF = function(){
+
+    // Same workflows as for onDownloadODS
+    var canceler = $q.defer();
+
+    var modalWindow = $uibModal.open({
+      templateUrl: 'loading-modal.html',
+      controllerAs: 'vm',
+      controller: function ($uibModalInstance) {
+        this.cancel = function () {
+          // dismiss the windows if the cancel button is clicked
+          $uibModalInstance.dismiss('cancel');
+        };
+      }
+    });
+
+    // if cancel button has been clicked, we abort the request
+    modalWindow.result.then(function(){}, canceler.resolve);
+
     return $http.post(
         "/exports/authorizations?format=pdf",
         {authorizations: vm.authorizations.filteredListing},
-        {responseType: 'arraybuffer'}
+        {responseType: 'arraybuffer', timeout: canceler.promise}
     ).then(function(response) {
+        modalWindow.close()
         var blob = new Blob(
             [response.data],
             {type: "application/pdf"}
         );
         var date = $filter('date')(new Date(), "yyyy-MM-dd_hh'h'mm'm'ss's'");
         saveAs(blob, `authorizations.${date}.pdf`);
-    });
+    }, function(error){
+      if (error.status !== -1){ // ignore error from the user aborting the request
+        console.error("Error while exporting to PDF", error);
+      }
+    }).finally();
   }
 
   // populate de listing

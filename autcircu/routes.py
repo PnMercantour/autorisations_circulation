@@ -69,7 +69,8 @@ def to_int(obj, default):
 
 @app.context_processor
 def inject_user():
-    return dict(user=g.user)
+    return dict(user=getattr(g, 'user', None))
+
 
 @app.route("/")
 def home():
