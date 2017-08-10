@@ -1,52 +1,9 @@
 (function(){
 'use strict';
 
-var app = angular.module('auth_circu', ['ui.bootstrap']);
+angular.module('auth_circu')
 
-app.config(['$locationProvider', function($locationProvider) {
-  // make sure we use HTML 5 APIs. E.G: browser history and no hash hack.
-  // WARNING: this implies all the links that are not managed by angular
-  // should be marked with target="_self". In this app we don't use angular
-  // routing, hence all links must be marked with target="_self".
-  $locationProvider.html5Mode(true);
-}]);
-
-app.controller('LoginFormCtrl', function($http, $location){
-  var vm = this;
-  vm.loginData = {};
-  vm.error = '';
-  vm.login = function($event){
-    $event.preventDefault();
-
-    $http({
-      method: 'POST',
-      url: '/auth/login',
-      data: vm.loginData
-    })
-    .then(function(data) {
-      console.log('location', $location.search(), $location.search().next, location.search);
-      window.location = $location.search().next || "/authorizations";
-    })
-    .catch(function(error){
-
-      if (error.status === 500) {
-        vm.error = 'Le service connait actuellement un disfonctionnement. '+
-                     ' Veuillez contacter un administrateur.';
-        console.error("Error while loging in. The server responded:", error);
-      } else {
-        if (error.data.type == "login") {
-          vm.error = "Nom d'utilisateur inconnu."
-        }
-        if (error.data.type == "password") {
-          vm.error = "Mot de passe incorrect."
-        }
-
-      }
-    })
-  }
-});
-
-app.service('AuthListing', function($http, $filter){
+.service('AuthListing', function($http, $filter){
 
   var service = this;
   var angularFilter = $filter('filter');
@@ -123,23 +80,7 @@ app.service('AuthListing', function($http, $filter){
   }
 })
 
-
-app.service('storage', function(){
-  var service = this;
-  service.get = function(key, defaultValue){
-    var res = localStorage.getItem(key);
-    if (res === null){
-      return defaultValue;
-    }
-    return JSON.parse(res);
-  };
-  service.set = function(key, value){
-    localStorage.setItem(key, JSON.stringify(value));
-  };
-});
-
-
-app.controller('AuthListingCtrl', function(
+.controller('AuthListingCtrl', function(
   AuthListing,
   storage,
   $location,
@@ -345,69 +286,5 @@ app.controller('AuthListingCtrl', function(
   // populate de listing
   vm.refreshDateFilter();
 })
-
-app.controller('RequestFormCtrl', function () {
-
-  /* For Salèse, limit to 01/05 to 30/11 */
-
-  this.requestData = {
-    requestDate: new Date()
-  }
-
-  // $scope.dateOptions = {
-  //   maxDate: new Date(2020, 5, 22),
-  //   startingDay: 1
-  // };
-
-
-});
-
-
-/**
- * Turn a collection into a listing of separated values
- */
-app.filter('join', function () {
-    return function join(array, separator, prop) {
-        if (!Array.isArray(array)) {
-          throw('The join filter expects and array')
-        }
-        return (!!prop ? array.map(function (item) {
-            return item[prop];
-        }) : array).join(separator);
-    };
-});
-
-/**
- *  Make all the strings follow the same format:
- *  "A     Cat   " => "a cat"
- *  "L'île-sur-noix !" => "l ile sur noix"
- */
-app.filter('normalize', function(){
-    var specialMarks = /[\u0300-\u036f]/g;
-    var spacing = /[ _\-']+/g;
-    var nonAlphaNum = /[^a-z0-9 ]+/g;
-    return function(str){
-
-        str = str.normalize('NFD').replace(specialMarks, "")
-        str = str.trim().toLowerCase().split(spacing).join(' ');
-        return str.replace(nonAlphaNum, "");
-    }
-})
-
-app.directive('onEscape', function() {
-    return {
-        restrict: 'A',
-        scope: {
-          onEscape: "&"
-        },
-        link: function(scope, element, attrs, controller) {
-            element.on('keydown', function(ev) {
-              if (ev.keyCode != 27) return;
-              scope.onEscape();
-              scope.$apply();
-            });
-        },
-    };
-});
 
 })();

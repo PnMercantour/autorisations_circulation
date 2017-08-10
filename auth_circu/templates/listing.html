@@ -2,6 +2,11 @@
 
 {% block pageid %}listing{% endblock pageid %}
 
+{% block extrajs %}
+  <script src="{{ url_for('static', filename='js/listing.js') }}"
+        type="text/javascript" charset="utf-8" ></script>
+{% endblock extrajs %}
+
 {% block title %}Liste des autorisations - {{ super() }}{% endblock title %}
 {% block h1 %}Liste des autorisations{% endblock h1 %}
 

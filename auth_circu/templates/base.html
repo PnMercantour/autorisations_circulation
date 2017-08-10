@@ -93,12 +93,11 @@
         type="text/javascript" charset="utf-8" ></script>
 <script src="{{ url_for('static', filename='js/FileSaver.js') }}"
         type="text/javascript" charset="utf-8" ></script>
-<script src="{{ url_for('static', filename='js/script.js') }}"
+<script src="{{ url_for('static', filename='js/common.js') }}"
         type="text/javascript" charset="utf-8" ></script>
 
-
-
-
+{% block extrajs %}
+{% endblock extrajs %}
 
 </body>
 </html>
