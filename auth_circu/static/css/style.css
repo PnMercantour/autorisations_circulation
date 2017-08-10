@@ -307,3 +307,59 @@ LISTING PAGE
   margin-right: 1rem;
 }
 
+/**************************
+Forms
+****************************/
+
+
+#auth-form .row  {
+  margin: 2rem 0;
+}
+
+#auth-form fieldset {
+  margin-top: 2rem;
+}
+
+#auth-form label.inline-left {
+  margin-right: 1ex;
+}
+
+#auth-form label.inline-between {
+  margin: 0 1ex;
+}
+
+#auth-form footer {
+  text-align: right;
+}
+
+#auth-form footer button {
+  margin-left: 3rem;
+}
+
+#auth-form a.delete {
+  color: grey;
+  margin-right: 1rem;
+}
+
+#auth-form button span{
+  margin-left: 1ex;
+}
+
+#auth-form textarea{
+  width: 35rem;
+  min-height: 10rem;
+}
+
+#auth-form .prescriptions textarea{
+  width: 100%;
+  min-height: 20rem;
+}
+
+#auth-form .places ul{
+  padding-left: 0;
+  margin: 2rem 1rem;
+}
+
+#auth-form .places li{
+  list-style: none;
+}

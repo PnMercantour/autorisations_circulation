@@ -104,7 +104,8 @@ def home():
 @app.route("/authorizations/new")
 @check_auth(2, redirect_on_expiration="/", redirect_on_invalid_token="/")
 def auth_form():
-    return render_template('auth_form.html')
+    motives = RequestMotive.query.order_by(RequestMotive.created.asc())
+    return render_template('auth_form.html', motives=motives)
 
 
 # if you change this route, change it in script.js too

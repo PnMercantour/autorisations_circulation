@@ -31,35 +31,37 @@
 
           <div class="col-xs-12">
 
-            <label>Faite le</label>
+            <label class="inline-left">Faite le</label>
             <span class="input-group">
 
               <input type="text" class="form-control"
                      uib-datepicker-popup="dd/MM/yyyy"
-                     ng-model="vm.requestData.requestDate"
-                     is-open="vm.datePicker.opened"
+                     ng-model="vm.request.date"
+                     is-open="vm.requestDatePicker.opened"
                      datepicker-options="{startingDay: 1}"
                      ng-required="true"
                      close-text="Fermer"
                      current-text="Aujourd'hui"
+                     required
                      clear-text="Supprimer"  />
               <span class="input-group-btn">
                 <button type="button" class="btn btn-default"
-                        ng-click="vm.datePicker.opened = true">
+                        ng-click="vm.requestDatePicker.opened = true">
                   <i class="glyphicon glyphicon-calendar"></i>
                 </button>
               </span>
             </span>
 
-            <label>par</label>
+            <label class="inline-between">par</label>
 
-            <select name="genre">
+            <select name="genre" ng-model="vm.request.author.prefix">
+              <option value="n/a">N/A</option>
               <option value="m">M.</option>
               <option value="f">Mme.</option>
             </select>
 
-            <input type="text" name="candidate"
-                   placeholder="NOM Prénom">
+            <input type="text" name="candidate" "vm.request.author.name"
+                   placeholder="Nom" required>
 
           </div>
 
@@ -69,68 +71,77 @@
 
           <div class="col-md-4 address">
             <p><label>Adresse</label></p>
-            <p><textarea></textarea></p>
+            <p>
+              <textarea ng-model="vm.request.author.address"
+                        required></textarea>
+            </p>
           </div>
 
           <div class="col-md-4 phone">
             <p><label>Téléphone (optionnel)</label></p>
-            <p><input type="tel" name="phone"></p>
+            <p>
+              <input type="tel" name="phone"
+                     ng-model="vm.request.author.phone">
+            </p>
           </div>
         </div>
 
         <div class="row motive">
           <div class="col-md-7">
-            <label>Motif</label>
-             <!-- TODO: select this from DB -->
-            <select name="motive">
-              <option>Accès à une propriété batie, à un village ou un hameau en coeur du parc</option>
-              option
+            <label class="inline-left">Motif</label>
+            <select name="motive" required
+                    ng-model="vm.request.motive">
+              {% endraw %}
+              {% for motive in motives %}
+                <option value="{{ motive.id }}">{{ motive.name }}</option>
+              {% endfor %}
+              {% raw %}
             </select>
           </div>
         </div>
 
         <div class="row">
           <div class="col-md-3">
-            <strong>Justificatifs</strong>
+            <h4>Justificatifs</h4>
           </div>
         </div>
 
-        <div class="row proofdoc">
+        <div class="row proofdoc" ng-repeat="doc in vm.request.docs">
 
-          <div class="col-md-3">
+          <div class="col-md-7">
 
-            <label>Type</label>
-            <select>
+            <a href="#" class="delete"
+               ng-click="vm.removeDoc($event, $index)">
+              <span class="glyphicon glyphicon-trash"></span>
+            </a>
+
+            <label class="inline-left">Type</label>
+            <select ng-model="doc.type" required >
               {#     TODO: get that from DB #}
               <option value="carteGrise">Carte Grise</option>
               <option value="proofOfAddress">Justificatif de domicile</option>
               <option value="CMI">Carte mobilité inclusion</option>
             </select>
 
-          </div>
-
-          <div class="col-md-5 date">
-            <label>Date de reception</label>
+            <label class="inline-between">Date de reception</label>
               <span class="input-group">
 
                 <input type="text" class="form-control"
                        uib-datepicker-popup="dd/MM/yyyy"
-                       ng-model="vm.requestData.requestDate"
-                       is-open="vm.datePicker.opened"
+                       ng-model="doc.date"
+                       is-open="doc.datePicker.opened"
                        datepicker-options="{startingDay: 1}"
-                       ng-required="true"
+                       required
                        close-text="Fermer"
                        current-text="Aujourd'hui"
                        clear-text="Supprimer"  />
                 <span class="input-group-btn">
                   <button type="button" class="btn btn-default"
-                          ng-click="vm.datePicker.opened = true">
+                          ng-click="doc.datePicker.opened = true">
                     <i class="glyphicon glyphicon-calendar"></i>
                   </button>
                 </span>
-                            <a href="#" class="delete">
-                <span class="glyphicon glyphicon-remove"></span>
-              </a>
+
               </span>
 
 
@@ -140,7 +151,8 @@
 
         <div class="row addproofdoc">
           <div class="col-md-6">
-            <button class="btn btn-default">
+            <button class="btn btn-default"
+                    ng-click="vm.addDoc($event)">
               Ajouter un justificatif
               <span class="glyphicon glyphicon-plus"></span>
             </button>
@@ -168,15 +180,17 @@
             </span>
           </div>
         </p>
-
+        {% raw %}
         <ul>
-          <li>
-            Piste de Salèse
-            <a href="#" class="delete">
-              <span class="glyphicon glyphicon-remove"></span>
+          <li ng-repeat="place in vm.request.authorization.places track by place.id" >
+            <a href="#" class="delete" ng-click="vm.removePlace($event, $index)">
+              <span class="glyphicon glyphicon-trash"></span>
             </a>
+            {{ place.name }}
+
           </li>
         </ul>
+        {% endraw %}
 
       </div>
     </div>
@@ -184,18 +198,18 @@
     <div class="row time-period">
 
       <div class="col-md-7">
-        <p><Strong>Pour la période</Strong></p>
+        <h4>Pour la période</h4>
       </div>
 
       <div class="col-md-7">
 
-        <label>Du</label>
+        <label class="inline-left">Du</label>
         <span class="input-group">
 
           <input type="text" class="form-control"
                  uib-datepicker-popup="dd/MM/yyyy"
-                 ng-model="vm.requestData.requestDate"
-                 is-open="vm.datePicker.opened"
+                 ng-model="vm.authorization.startDate"
+                 is-open="vm.startDate.datePicker.opened"
                  datepicker-options="{startingDay: 1}"
                  ng-required="true"
                  close-text="Fermer"
@@ -203,20 +217,20 @@
                  clear-text="Supprimer"  />
           <span class="input-group-btn">
             <button type="button" class="btn btn-default"
-                    ng-click="vm.datePicker.opened = true">
+                    ng-click="vm.startDate.datePicker.opened = true">
               <i class="glyphicon glyphicon-calendar"></i>
             </button>
           </span>
         </span>
 
-        <label>au</label>
+        <label class="inline-between">au</label>
 
         <span class="input-group">
 
           <input type="text" class="form-control"
                  uib-datepicker-popup="dd/MM/yyyy"
-                 ng-model="vm.requestData.requestDate"
-                 is-open="vm.datePicker.opened"
+                 ng-model="vm.authorization.endDate"
+                 is-open="vm.endDate.datePicker.opened"
                  datepicker-options="{startingDay: 1}"
                  ng-required="true"
                  close-text="Fermer"
@@ -224,7 +238,7 @@
                  clear-text="Supprimer"  />
           <span class="input-group-btn">
             <button type="button" class="btn btn-default"
-                    ng-click="vm.datePicker.opened = true">
+                    ng-click="vm.endDate.datePicker.opened = true">
               <i class="glyphicon glyphicon-calendar"></i>
             </button>
           </span>
@@ -234,12 +248,12 @@
 
     </div>
 
-    <div class="row rules">
+    <div class="row rules prescriptions">
       <div class="col-md-6">
         <p>
           <label>Prescriptions</label>
         </p>
-        <textarea></textarea>
+        <textarea ng-model="vm.authorization.prescriptions"></textarea>
       </div>
     </div>
 
@@ -253,31 +267,26 @@
 
       <div class="col-md-7">
         <p>
-          <label>Immatriculation</label>
-          <input type="text">
-          <a href="#" class="delete">
-            <span class="glyphicon glyphicon-remove"></span>
-          </a>
-        </p>
-      </div>
-
-      <div class="col-md-7">
-        <button class="btn btn-default">
-          Ajouter un véhicule
-          <span class="glyphicon glyphicon-plus"></span>
-        </button>
-      </div>
-
-      <div class="col-md-7 groupVehicules">
-        <p>
-          <label>
-            <input type="checkbox" id="cbox1" value="groupCards">
-            <span>Grouper tous les véhicules sur un même carton</span>
-          </label>
+          <label class="inline-left">Immatriculation</label>
+          <input type="text" ng-model="vm.authorizations.vehicules"
+                 ng-list required placeholder="Ex: 899XT06, 737RT13"
+          >
         </p>
       </div>
 
     </div>
+
+    <div class="row groupVehicules">
+      <p>
+        <label>
+          <input type="checkbox" id="cbox1" value="groupCards"
+                 ng-model="vm.request.groupVehicules"
+          >
+          <span>Grouper tous les véhicules sur un même carton</span>
+        </label>
+      </p>
+    </div>
+
 
   </fieldset>
 
