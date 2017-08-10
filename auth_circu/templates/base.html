@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="fr" ng-app="autcircu">
+<html lang="fr" ng-app="auth_circu">
 <head>
-
+  <!-- base is required by angular to use correctly the HTML5 mode -->
+  <base href="/">
   <title>{% block title %}Autorisation de circulation{% endblock title %}</title>
   <link rel="shortcut icon" href="favicon.ico">
   <link rel="stylesheet" type="text/css"
@@ -17,7 +18,7 @@
 
   <div class="title">
     <nav>
-      <a href="/">
+      <a href="/" target="_self">
           <img alt="Brand"
                src="{{ url_for('static', filename='img/logo_header.png') }}">
       </a>
@@ -28,19 +29,35 @@
   <nav class="menu">
 
     <ul>
-      <li class="dropdown" uib-dropdown>
-        <a class="dropdown-toggle" href="#" data-toggle="dropdown" role="button"
-           aria-haspopup="true" aria-expanded="false" uib-dropdown-toggle>
-           <span class="glyphicon glyphicon-plus"></span>
-           <span class="visible-lg-inline-block">Nouvelle autorisation</span>
-           <span class="caret"></span>
-        </a>
-        <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
-          <li><a href="{{ url_for('auth_form') }}">Professionnelle</a></li>
-          <li><a href="#">Pour Salèse</a></li>
-          <li><a href="#">Autre</a></li>
-        </ul>
-      </li>
+      {% if user.id_droit_max >= 2 %}
+
+        <li class="dropdown" uib-dropdown>
+          <a class="dropdown-toggle" href="#" data-toggle="dropdown" role="button"
+             aria-haspopup="true" aria-expanded="false" uib-dropdown-toggle>
+             <span class="glyphicon glyphicon-plus"></span>
+             <span class="visible-lg-inline-block">Nouvelle autorisation</span>
+             <span class="caret"></span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
+            <li>
+              <a href="{{ url_for('auth_form') }}" target="_self">
+                Professionnelle
+              </a>
+              </li>
+            <li>
+              <a href="#" target="_self">
+                Pour Salèse
+              </a>
+            </li>
+            <li>
+              <a href="#" target="_self">
+                Autre
+              </a>
+            </li>
+          </ul>
+        </li>
+
+      {% endif %}
 
       <li class="dropdown" uib-dropdown>
         <a class="dropdown-toggle" data-toggle="dropdown" role="button"
@@ -50,7 +67,10 @@
            <span class=" caret"></span>
         </a>
         <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
-          <li><a href="/auth/logout">Se déconnecter</a></li>
+          {% if user.id_droit_max >= 6 %}
+            <li><a href="/admin" target="_self">Admin</a></li>
+          {% endif %}
+          <li><a href="/auth/logout" target="_self">Se déconnecter</a></li>
         </ul>
       </li>
 

@@ -2,10 +2,10 @@ import os
 import functools
 import operator
 import calendar
-from datetime import datetime
-from io import BytesIO
 
-import jinja2
+from io import BytesIO
+from pathlib import Path
+from datetime import datetime
 
 import flask_excel
 
@@ -13,7 +13,7 @@ import weasyprint
 
 import pypnusershub.routes
 
-from sqlalchemy.orm import joinedload, undefer
+from sqlalchemy.orm import joinedload
 from sqlalchemy import extract
 
 from flask import (
@@ -29,25 +29,41 @@ from flask import (
 from werkzeug.exceptions import BadRequest
 
 from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
+from flask_admin.contrib.fileadmin import FileAdmin
+from flask_admin.menu import MenuLink
 
-from pypnusershub.db.models import User, db
+from pypnusershub.db.models import db
 from pypnusershub.db.tools import AccessRightsError, user_from_token
 from pypnusershub.routes import check_auth
 
 from .conf import app
-from .db.models import AuthRequest
-
+from .db.models import AuthRequest, RequestMotive
+from .admin import RequestMotiveModelView
 
 # Automatic admin
-admin = Admin(app, name='Admin de la BDD des autorisations')
-admin.add_view(ModelView(User, db.session))
+admin = Admin(
+    app,
+    name='Admin de la BDD des autorisations',
+    index_view=RequestMotiveModelView(
+        RequestMotive,
+        db.session,
+        endpoint='admin',
+        url="/admin",
+        static_folder="static"
+    )
+)
+
+admin.add_link(MenuLink(name='Retour aux autorisations', url='/authorizations'))
+path = Path(__file__).parent.parent / 'auth_templates'
+admin.add_view(FileAdmin(path, '/authtemplates/', name='Modèles'))
 
 # Auth
 app.register_blueprint(pypnusershub.routes.routes, url_prefix='/auth')
 
+# ODS export intégration
 flask_excel.init_excel(app)
 
+# Some constants we use in the later views
 MONTHS = [('all-months', 'tout mois')]
 MONTHS.extend((i, datetime(2008, i, 1).strftime('%B')) for i in range(1, 13))
 MONTHS_VALUES = [str(key) for key, val in MONTHS]

@@ -11,8 +11,8 @@ parser.add_argument('--port', help='Serve to this port', default=5000, type=int)
 args = parser.parse_args()
 os.environ.setdefault('AUTH_CIRCU_CONFIG_FILE', args.config_file or "")
 
-from autcircu.routes import app  # noqa
-from autcircu.db.utils import init_db  # noqa
+from auth_circu.routes import app  # noqa
+from auth_circu.db.utils import init_db  # noqa
 
 init_db(app)
 app.run(host=args.host, port=args.port)

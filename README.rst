@@ -36,8 +36,8 @@ Il faut avoir Python 3.6 desinstallé:
 - sous mac on peut utiliser homebrew (http://docs.python-guide.org/en/latest/starting/install/osx/)
 - if vous utilisez un système linux récent comme la dernière version d'Ubuntu, vous pouvez utiliser les repositories officiels. Ex: sudo apt-get install python3.6
 - Si vous utilisez un linux plus anciens, il faut utiliser une source externe. Par exemple, sous Ubuntu, un ppa:
-    * sudo add-apt-repository ppa:fkrull/deadsnakes  
-    * sudo apt update  
+    * sudo add-apt-repository ppa:fkrull/deadsnakes
+    * sudo apt update
     * sudo apt-get install python3.6
 - sinon vous pouvez utiliser pythonz (https://github.com/saghul/pythonz)
 
@@ -53,7 +53,7 @@ Ensuite, on récupère le code::
 
 Il faut également virtualenv installé sur votre machine. Une installation récente de Python a généralement virtualenv pré-installé, soit sous la forme de la commande virtualenv, soit sous la forme de la commande python -m venv. Une exception notable sont les distributions linux basées sur debian (comme Ubuntu) qui ont besoin qu'on installe le package python3-virtualenv (sudo apt-get install...).
 
-Faites attention à utiliser un virtualenv installé pour Python 3 et non Python 2. 
+Faites attention à utiliser un virtualenv installé pour Python 3 et non Python 2.
 
 On créé un environnement virtuel::
 
@@ -63,20 +63,20 @@ On créé un environnement virtuel::
 
 On installe les dependances dans l'environnement virtuel::
 
-    pip install -r requirements.txt 
-    
+    pip install -r requirements.txt
+
 On génère un fichier de configuration::
 
-    python -m autcircu generate_config_file
-    
+    python -m auth_circu generate_config_file
+
 Le fichier de configuration devrait ressembler à ceci:
 
     [security]
     database_uri = postgresql://nomutilisateur:motdepasse@host:port/nombasededonnees
     secret_key = ga1CY.0mX[2Jcz@^+=#rPnB)"vAwr3~%QpY^Y]|=hn,!XBW(l0
-    
+
  Il permett de configurer la connexion à la base de données et fournir une clé secrète qui sécurise l'authentification de l'application. Ne partagez pas son contenu. Ne le rendez pas accessible. Ne le commitez pas sur git.
- 
+
 Assurez-vous également que côté base de données:
 
 - vous avez une version suffisament récente de postgres (9.5 ou plus)

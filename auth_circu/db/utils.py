@@ -2,7 +2,6 @@
 import string
 import random
 
-import datetime
 import unicodedata
 
 from csv import DictReader
@@ -18,7 +17,7 @@ from pypnusershub.db.models import (
 from pypnusershub.db.tools import init_schema, delete_schema, load_fixtures
 from pypnusershub.utils import text_resource_stream
 
-import autcircu
+import auth_circu
 
 
 def generate_secret_key(size=50):
@@ -30,9 +29,9 @@ def generate_secret_key(size=50):
 
 
 def start_app_context():
-    from autcircu.conf import app
+    from auth_circu.conf import app
     # trigger the blueprint registering which binds pypnusershub'db
-    from autcircu import routes  # noqa
+    from auth_circu import routes  # noqa
     return app.app_context().push()
 
 
@@ -129,7 +128,7 @@ def get_or_create(session,
 def populate_db(db=db):
 
     # temporarly avoid settings default dates
-    columns = autcircu.db.models.AuthRequest.__table__.columns
+    columns = auth_circu.db.models.AuthRequest.__table__.columns
     columns['auth_start_date'].default = None
     columns['auth_end_date'].default = None
     columns['request_date'].default = None
@@ -148,7 +147,7 @@ def populate_db(db=db):
 
     all_places = {}
 
-    with text_resource_stream('legacy_auth_export.csv', 'autcircu.db') as data:
+    with text_resource_stream('legacy_auth_export.csv', 'auth_circu.db') as data:
 
         for row in DictReader(data):
 
@@ -182,7 +181,7 @@ def populate_db(db=db):
                     norm_str = normalize(place)
 
                     if norm_str not in all_places:
-                        restricted_place = autcircu.db.models.RestrictedPlace(
+                        restricted_place = auth_circu.db.models.RestrictedPlace(
                             name=place
                         )
                         all_places[norm_str] = restricted_place
@@ -223,10 +222,10 @@ def populate_db(db=db):
             number = row['NUMERO AUTORISATION']
             if not number:
                 base = start_date.year if start_date else '????'
-                number = autcircu.db.models.AuthRequest.generate_number(base)
+                number = auth_circu.db.models.AuthRequest.generate_number(base)
 
             # TODO: put a "note" ?
-            auth_req = autcircu.db.models.AuthRequest(
+            auth_req = auth_circu.db.models.AuthRequest(
                 number=number,
                 type=request_type,
                 author_name=name or None,

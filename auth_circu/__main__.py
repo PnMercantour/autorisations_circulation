@@ -8,16 +8,16 @@ from pathlib import Path
 
 from IPython import embed
 
-from autcircu.db.models import ( # noqa
+from auth_circu.db.models import ( # noqa
     RequestMotive, RestrictedPlace, LetterTemplate,
     AuthRequest, db
 )
-from autcircu.db.utils import (
+from auth_circu.db.utils import (
     start_app_context, init_db, delete_db, create_test_user, populate_db,
     generate_secret_key
 )
 
-from autcircu.conf import app  # noqa
+from auth_circu.conf import app  # noqa
 
 from pypnusershub.db.models import (  # noqa
     User, Application, AppUser, ApplicationRight, UserApplicationRight
@@ -122,7 +122,7 @@ def generate_config_file(args):
 
 def make_cmd_parser():
     """ Create a CMD parser with subcommands """
-    parser = argparse.ArgumentParser('python -m autcircu')
+    parser = argparse.ArgumentParser('python -m auth_circu')
 
     parser.set_defaults(func=lambda x: parser.print_usage(sys.stderr))
 

@@ -31,7 +31,7 @@ Global
 .main-header .title {
   display: flex;
   flex-direction: row;
-  max-width: 60%;
+  width: 80ex;
 }
 
 .main-header h1{
@@ -64,6 +64,19 @@ Global
 
 .main-header .menu .dropdown-menu li {
   width: 100%;
+}
+
+.backbutton {
+  color: white;
+  border-radius: 5px;
+  width: 3rem;
+}
+
+.backbutton:hover, .backbutton:active {
+  color: #689432;
+  border: 1px solid white;
+  background-color: white;
+  text-decoration: none;
 }
 
 

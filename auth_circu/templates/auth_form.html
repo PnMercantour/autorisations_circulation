@@ -3,7 +3,11 @@
 {% block pageid %}auth-form{% endblock pageid %}
 
 {% block title %}Nouvelle autorisations - {{ super() }}{% endblock title %}
-{% block h1 %}Nouvelle autorisation{% endblock h1 %}
+{% block h1 %}
+  <a class="glyphicon glyphicon-chevron-left backbutton"
+     href="/" target="_self"></a>
+  Nouvelle autorisation
+{% endblock h1 %}
 
 {% block content %}
 <section class="container">

@@ -1,3 +1,3 @@
 
 def test_import():
-    import autcircu  # noqa
+    import auth_circu  # noqa

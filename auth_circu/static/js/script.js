@@ -1,7 +1,17 @@
-var app = angular.module('autcircu', ['ui.bootstrap']);
+(function(){
+'use strict';
 
+var app = angular.module('auth_circu', ['ui.bootstrap']);
 
-app.controller('LoginFormCtrl', function($http){
+app.config(['$locationProvider', function($locationProvider) {
+  // make sure we use HTML 5 APIs. E.G: browser history and no hash hack.
+  // WARNING: this implies all the links that are not managed by angular
+  // should be marked with target="_self". In this app we don't use angular
+  // routing, hence all links must be marked with target="_self".
+  $locationProvider.html5Mode(true);
+}]);
+
+app.controller('LoginFormCtrl', function($http, $location){
   var vm = this;
   vm.loginData = {};
   vm.error = '';
@@ -14,7 +24,8 @@ app.controller('LoginFormCtrl', function($http){
       data: vm.loginData
     })
     .then(function(data) {
-      window.location = "/authorizations";
+      console.log('location', $location.search(), $location.search().next, location.search);
+      window.location = $location.search().next || "/authorizations";
     })
     .catch(function(error){
 
@@ -398,3 +409,5 @@ app.directive('onEscape', function() {
         },
     };
 });
+
+})();

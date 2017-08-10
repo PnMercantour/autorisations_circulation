@@ -4,8 +4,13 @@ from datetime import date
 
 from sqlalchemy.orm import load_only, deferred, relationship
 
-from sqlalchemy_utils import (ChoiceType, UUIDType, JSONType, Timestamp,
-                              generic_repr, ScalarListType)
+from sqlalchemy_utils import (
+    ChoiceType,
+    UUIDType,
+    JSONType,
+    Timestamp,
+    ScalarListType
+)
 
 from pypnusershub.db.models import db
 

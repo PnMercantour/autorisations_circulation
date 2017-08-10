@@ -25,7 +25,7 @@ except locale.Error:
         the locale settings in conf.py.
     """))
 
-app = Flask('autcircu')
+app = Flask('auth_circu')
 
 # load config file
 config_file = os.environ.get("AUTH_CIRCU_CONFIG_FILE", "")
