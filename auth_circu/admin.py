@@ -1,12 +1,13 @@
 
 from pypnusershub.routes import check_auth
 
-from flask_admin import AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 
 
 # Create customized model view class
-class RequestMotiveModelView(ModelView):
+class AuthenticatedModelView(ModelView):
+
+    column_exclude_list = form_excluded_columns = ('created', 'updated')
 
     @check_auth(
         3,
@@ -15,4 +16,3 @@ class RequestMotiveModelView(ModelView):
     )
     def _handle_view(self, name, **kwargs):
         return super()._handle_view(name, **kwargs)
-

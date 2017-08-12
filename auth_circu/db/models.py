@@ -46,8 +46,18 @@ class RestrictedPlace(db.Model, Timestamp):
     __tablename__ = 't_restricted_place'
     __table_args__ = {'schema': 'auth_circu'}
 
+    TYPES = [
+        ('legacy', 'Données importées'),
+        ('up', 'Unité Pastorale'),
+        ('piste', 'Piste')
+    ]
+
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
     name = db.Column(db.Unicode(256), nullable=False)
+    type = db.Column(
+        ChoiceType(TYPES),
+        nullable=False,
+    )
 
     def serialize(self):
         return {

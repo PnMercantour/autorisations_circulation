@@ -1,8 +1,23 @@
 {% extends "base.html" %}
 
+{% block appname %}auth_request{% endblock appname %}"
+
 {% block pageid %}auth-form{% endblock pageid %}
 
+{% block extracss %}
+  <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='css/select.css') }}">
+{% endblock extracss %}
+
 {% block extrajs %}
+
+  <script>
+    // avoid an additional ajax request
+    window.PRELOAD_PLACES = {{ places|safe }};
+  </script>
+
+  <script src="{{ url_for('static', filename='js/select.js') }}"
+        type="text/javascript" charset="utf-8" ></script>
   <script src="{{ url_for('static', filename='js/forms.js') }}"
         type="text/javascript" charset="utf-8" ></script>
 {% endblock extrajs %}
@@ -77,7 +92,7 @@
             </p>
           </div>
 
-          <div class="col-md-4 phone">
+          <div class="col-md-6  phone">
             <p><label>Téléphone (optionnel)</label></p>
             <p>
               <input type="tel" name="phone"
@@ -92,9 +107,11 @@
             <select name="motive" required
                     ng-model="vm.request.motive">
               {% endraw %}
+
               {% for motive in motives %}
                 <option value="{{ motive.id }}">{{ motive.name }}</option>
               {% endfor %}
+
               {% raw %}
             </select>
           </div>
@@ -169,19 +186,19 @@
     <div class='row'>
       <div class="places col-md-7">
         <p><label>Lieux concernés</label></p>
-        <p>
-          <div class="input-group">
-            <input type="text"
-                   class="form-control"
-                   placeholder="Piste, UP, etc.">
-            <span class="input-group-btn">
-              <button class="btn btn-secondary"
-                      type="button">Ajouter</button>
-            </span>
-          </div>
-        </p>
+
+            <ui-select on-select="vm.addPlace($item)"
+                       ng-model="vm.newPlace" theme="bootstrap">
+                <ui-select-match>
+                    <span ng-bind="$select.selected.name"></span>
+                </ui-select-match>
+                <ui-select-choices repeat="place in (vm.places | filter: $select.search) track by place.id">
+                    <span ng-bind="place.name"></span>
+                </ui-select-choices>
+            </ui-select>
+
         {% raw %}
-        <ul>
+        <ul class="place-list">
           <li ng-repeat="place in vm.request.authorization.places track by place.id" >
             <a href="#" class="delete" ng-click="vm.removePlace($event, $index)">
               <span class="glyphicon glyphicon-trash"></span>

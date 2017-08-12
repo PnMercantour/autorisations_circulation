@@ -355,11 +355,16 @@ Forms
   min-height: 20rem;
 }
 
-#auth-form .places ul{
+#auth-form .places .place-list{
   padding-left: 0;
   margin: 2rem 1rem;
 }
 
 #auth-form .places li{
   list-style: none;
+}
+
+/* Override boostrap default inline form style*/
+.ui-select-container .form-control {
+    width: 100% !important;
 }

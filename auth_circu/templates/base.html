@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fr" ng-app="auth_circu">
+<html lang="fr" ng-app="{% block appname %}auth_circu{% endblock appname %}">
 <head>
   <!-- base is required by angular to use correctly the HTML5 mode -->
   <base href="/">
@@ -9,6 +9,8 @@
         href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
   <link rel="stylesheet" type="text/css"
         href="{{ url_for('static', filename='css/style.css') }}">
+  {% block extracss %}
+  {% endblock extracss %}
 </head>
 <body id="{% block pageid %}no-id{% endblock pageid %}">
 
@@ -84,6 +86,8 @@
 {% endblock content %}
 
 <script src="{{ url_for('static', filename='js/angular/angular.js') }}"
+        type="text/javascript" charset="utf-8" ></script>
+<script src="{{ url_for('static', filename='js/angular/angular-sanitize.js') }}"
         type="text/javascript" charset="utf-8" ></script>
 <script src="{{ url_for('static', filename='js/angular/angular-animate.js') }}"
         type="text/javascript" charset="utf-8" ></script>

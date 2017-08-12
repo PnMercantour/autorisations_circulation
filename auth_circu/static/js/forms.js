@@ -1,14 +1,20 @@
 (function(){
 'use strict';
 
-angular.module('auth_circu')
-
+angular.module('auth_request', [
+  'auth_circu',
+  'ui.select',
+  'ngSanitize'
+])
 
 .controller('RequestFormCtrl', function () {
 
   /* For Salèse, limit to 01/05 to 30/11 */
 
   var vm = this;
+
+
+  vm.places = window.PRELOAD_PLACES;
 
   vm.request = {
     date: new Date(),
@@ -22,7 +28,7 @@ angular.module('auth_circu')
     },
     authorization: {
       prescriptions: undefined,
-      places: [{name: 'Piste de Salèse', id:'89'}],
+      places: [],
       vehicules: [],
       startDate: undefined,
       endDate: undefined
@@ -48,6 +54,16 @@ angular.module('auth_circu')
   vm.removePlace = function(e, index){
     e.preventDefault();
     vm.request.authorization.places.splice(index, 1);
+  }
+
+  vm.addPlace = function(newPlace){
+    var isDuplicate = vm.request.authorization.places.some(function(place){
+      return newPlace.id == place.id;
+    });
+    if (!isDuplicate){
+      vm.request.authorization.places.push(newPlace);
+      vm.newPlace = undefined;
+    }
   }
 
   // $scope.dateOptions = {

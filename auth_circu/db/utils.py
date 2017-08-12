@@ -182,7 +182,8 @@ def populate_db(db=db):
 
                     if norm_str not in all_places:
                         restricted_place = auth_circu.db.models.RestrictedPlace(
-                            name=place
+                            name=place,
+                            type="legacy"
                         )
                         all_places[norm_str] = restricted_place
                         db.session.add(restricted_place)
@@ -249,5 +250,16 @@ def populate_db(db=db):
 
             db.session.add(auth_req)
             yield auth_req
+
+        db.session.commit()
+
+        with text_resource_stream('legacy_up.csv', 'auth_circu.db') as data:
+            for row in DictReader(data):
+                place = auth_circu.db.models.RestrictedPlace(
+                    name=row['nom_up'].strip(),
+                    type='up'
+                )
+                db.session.add(place)
+                yield row
 
         db.session.commit()
