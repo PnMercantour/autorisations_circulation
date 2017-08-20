@@ -4,7 +4,7 @@ import random
 
 import unicodedata
 
-from csv import DictReader
+from csv import DictReader, reader
 
 from datetime import datetime
 
@@ -253,13 +253,23 @@ def populate_db(db=db):
 
         db.session.commit()
 
-        with text_resource_stream('legacy_up.csv', 'auth_circu.db') as data:
+        # add known restricted places
+        with text_resource_stream('restricted_places.csv', 'auth_circu.db') as data:
             for row in DictReader(data):
                 place = auth_circu.db.models.RestrictedPlace(
-                    name=row['nom_up'].strip(),
-                    type='up'
+                    name=row['name'].strip(),
+                    type=row['type'].strip()
                 )
                 db.session.add(place)
+                yield row
+
+        # add known request motives
+        with text_resource_stream('motives.csv', 'auth_circu.db') as data:
+            for row in reader(data):
+                motive = auth_circu.db.models.RequestMotive(
+                    name=row[0].strip(),
+                )
+                db.session.add(motive)
                 yield row
 
         db.session.commit()
