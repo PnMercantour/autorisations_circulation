@@ -29,35 +29,14 @@ from flask import (
 
 from werkzeug.exceptions import BadRequest
 
-from flask_admin import Admin
-from flask_admin.contrib.fileadmin import FileAdmin
-from flask_admin.menu import MenuLink
-
-from pypnusershub.db.models import db
 from pypnusershub.db.tools import AccessRightsError, user_from_token
 from pypnusershub.routes import check_auth
 
 from .conf import app
 from .db.models import AuthRequest, RequestMotive, RestrictedPlace
-from .admin import AuthenticatedModelView
+from .admin import setup_admin
 
-# Automatic admin
-admin = Admin(
-    app,
-    name='Admin de la BDD des autorisations',
-    index_view=AuthenticatedModelView(
-        RestrictedPlace,
-        db.session,
-        endpoint='admin',
-        url="/admin",
-        static_folder="static"
-    )
-)
-
-admin.add_view(AuthenticatedModelView(RequestMotive, db.session))
-admin.add_link(MenuLink(name='Retour aux autorisations', url='/authorizations'))
-path = Path(__file__).parent.parent / 'auth_templates'
-admin.add_view(FileAdmin(path, '/authtemplates/', name='Modèles'))
+setup_admin(app)
 
 # Auth
 app.register_blueprint(pypnusershub.routes.routes, url_prefix='/auth')
@@ -108,7 +87,7 @@ def home():
 def auth_form():
     motives = RequestMotive.query.order_by(RequestMotive.created.asc())
     places = (RestrictedPlace.query
-                             .filter(RestrictedPlace.type != "legacy")
+                             .filter(RestrictedPlace.category != "legacy")
                              .order_by(RestrictedPlace.name.asc()))
     return render_template(
         'auth_form.html',
@@ -162,7 +141,6 @@ def listing():
        'listing.html',
        selected_year=now.year,
        selected_month=now.month,
-       type=type,
        years=years,
        months=MONTHS,
        selected_auth_status=selected_auth_status,

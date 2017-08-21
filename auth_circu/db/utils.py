@@ -151,9 +151,9 @@ def populate_db(db=db):
 
         for row in DictReader(data):
 
-            # Default type is "other", we should not have 'pro' as they are
+            # Default categ is "other", we should not have 'pro' as they are
             # a new thing, and we switch to salèze if we see it in the places
-            request_type = "other"
+            request_categ = "other"
 
             # Remove useless spaces.
             row = {key: value.strip() for key, value in row.items()}
@@ -183,15 +183,15 @@ def populate_db(db=db):
                     if norm_str not in all_places:
                         restricted_place = auth_circu.db.models.RestrictedPlace(
                             name=place,
-                            type="legacy"
+                            category="legacy"
                         )
                         all_places[norm_str] = restricted_place
                         db.session.add(restricted_place)
                     else:
                         restricted_place = all_places[norm_str]
 
-                    if "salese" in norm_str:
-                        request_type = 'salese'
+                    if "salese" in norm_str or "saleze" in norm_str:
+                        request_categ = 'salese'
 
                     places.append(restricted_place)
 
@@ -228,7 +228,7 @@ def populate_db(db=db):
             # TODO: put a "note" ?
             auth_req = auth_circu.db.models.AuthRequest(
                 number=number,
-                type=request_type,
+                category=request_categ,
                 author_name=name or None,
                 author_gender=gender,
                 author_address=address or None,
@@ -258,7 +258,7 @@ def populate_db(db=db):
             for row in DictReader(data):
                 place = auth_circu.db.models.RestrictedPlace(
                     name=row['name'].strip(),
-                    type=row['type'].strip()
+                    category=row['category'].strip()
                 )
                 db.session.add(place)
                 yield row

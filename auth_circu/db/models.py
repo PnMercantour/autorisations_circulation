@@ -46,16 +46,16 @@ class RestrictedPlace(db.Model, Timestamp):
     __tablename__ = 't_restricted_place'
     __table_args__ = {'schema': 'auth_circu'}
 
-    TYPES = [
-        ('legacy', 'Données importées'),
+    CATEGORIES = [
+        ('legacy', 'Donnée importée'),
         ('up', 'Unité Pastorale'),
         ('piste', 'Piste')
     ]
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
     name = db.Column(db.Unicode(256), nullable=False)
-    type = db.Column(
-        ChoiceType(TYPES),
+    category = db.Column(
+        ChoiceType(CATEGORIES),
         nullable=False,
     )
 
@@ -88,13 +88,17 @@ class LetterTemplate(db.Model, Timestamp):
     __tablename__ = 't_letter_template'
     __table_args__ = {'schema': 'auth_circu'}
 
-    TYPES = [
+    CATEGORIES = [
         ('decision', 'Decision'),
         ('arrete', 'Arrêté')
     ]
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
-    type = db.Column(ChoiceType(TYPES), nullable=False, default="decision")
+    category = db.Column(
+        ChoiceType(CATEGORIES),
+        nullable=False,
+        default="decision"
+    )
     content = db.Column(db.UnicodeText)
 
     def __repr__(self):
@@ -112,14 +116,18 @@ class AuthRequest(db.Model, Timestamp):
         ('f', 'Femme')
     ]
 
-    TYPES = [
+    CATEGORIES = [
         ('pro', 'Professionnelle'),
         ('salese', 'Salèse'),
         ('other', 'Autre')
     ]
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
-    type = db.Column(ChoiceType(TYPES), nullable=False, default='other')
+    category = db.Column(
+        ChoiceType(CATEGORIES),
+        nullable=False,
+        default='other'
+    )
     number = db.Column(db.String(10), nullable=False)
 
     request_date = db.Column(db.Date, default=date.today)
@@ -171,7 +179,7 @@ class AuthRequest(db.Model, Timestamp):
 
         return {
             'id': str(self.id),
-            'type': self.type.value,
+            'category': self.category.value,
             'number': self.number,
             'request_date': request_date,
             'motive': self.motive.serialize() if self.motive else None,
