@@ -56,8 +56,20 @@ def reset_db(args):
 def call_populate_db(args):
     print('Populating db')
     start_app_context()
-    for request in populate_db():
+    for request in populate_db(args.populate):
         print('.', end='')
+    if args.test_user:
+        print('\nCreating user')
+        username, pwd = args.test_user.split(':')
+        try:
+            create_test_user(
+                app,
+                username=username,
+                password=pwd,
+                access_rights=6
+            )
+        except ValueError as e:
+            sys.exit(e)
     print('\nDone')
 
 
@@ -140,7 +152,7 @@ def make_cmd_parser():
 
     parser_init_db = subparsers.add_parser('init_db')
     parser_init_db.set_defaults(func=call_init_db)
-    parser_init_db.add_argument('--populate', action='store_true',
+    parser_init_db.add_argument('--populate', metavar="DATAF_ILE",
                                 help='Populate the db with legacy auth')
     parser_init_db.add_argument('--yes', action='store_true',
                                 help='Skip the confirmation')
@@ -158,10 +170,12 @@ def make_cmd_parser():
 
     parser_reset_db = subparsers.add_parser('reset_db')
     parser_reset_db.set_defaults(func=reset_db)
-    parser_reset_db.add_argument('--populate', action='store_true',
+    parser_reset_db.add_argument('--populate', metavar="DATA_FILE",
                                  help='Populate the db with legacy auth')
     parser_reset_db.add_argument('--yes', action='store_true',
                                  help='Skip the confirmation')
+    parser_reset_db.add_argument('--test-user',
+                                 help='Pass username:password to create a test user')
     parser_reset_db.add_argument(
         '--config-file',
         help='Path to the config file'

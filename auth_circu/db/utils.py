@@ -125,7 +125,7 @@ def get_or_create(session,
             return session.query(model).filter_by(**kwargs).one(), True
 
 
-def populate_db(db=db):
+def populate_db(data_file, db=db):
 
     # temporarly avoid settings default dates
     columns = auth_circu.db.models.AuthRequest.__table__.columns
@@ -147,7 +147,7 @@ def populate_db(db=db):
 
     all_places = {}
 
-    with text_resource_stream('legacy_auth_export.csv', 'auth_circu.db') as data:
+    with open(data_file) as data:
 
         for row in DictReader(data):
 
