@@ -30,11 +30,13 @@ class RequestMotive(db.Model, Timestamp):
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
     name = db.Column(db.Unicode(256), nullable=False)
+    active = db.Column(db.Boolean, default=True, nullable=False)
 
     def serialize(self):
         return {
             "id": str(self.id),
-            "name": self.name
+            "name": self.name,
+            "active": self.active
         }
 
     def __repr__(self):
@@ -54,6 +56,7 @@ class RestrictedPlace(db.Model, Timestamp):
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
     name = db.Column(db.Unicode(256), nullable=False)
+    active = db.Column(db.Boolean, default=True, nullable=False)
     category = db.Column(
         ChoiceType(CATEGORIES),
         nullable=False,
@@ -62,7 +65,9 @@ class RestrictedPlace(db.Model, Timestamp):
     def serialize(self):
         return {
             'id': str(self.id),
-            'name': self.name
+            'name': self.name,
+            'active': self.active,
+            'category': self.category.code
         }
 
     def __repr__(self):
@@ -100,9 +105,30 @@ class LetterTemplate(db.Model, Timestamp):
         default="decision"
     )
     content = db.Column(db.UnicodeText)
+    active = db.Column(db.Boolean, default=True, nullable=False)
 
     def __repr__(self):
         return f"<LetterTemplate id='{self.id}'>"
+
+
+def generate_auth_number(year=None, baseline=1):
+    """ Generate an auth request number """
+    year = str(year or date.today().year)
+
+    # get the request with the highest number for this year
+    last_req = (AuthRequest.query
+                            .filter(AuthRequest.number.like(f'{year}%'))
+                            .order_by(AuthRequest.number.desc())
+                            .options(load_only("number"))
+                            .first())
+
+    # extract it if it exists or start the counter at 1
+    if last_req:
+        num = int(last_req.number.split('c')[-1]) + 1
+    else:
+        num = baseline
+
+    return f"{year}-c{num:04}"
 
 
 class AuthRequest(db.Model, Timestamp):
@@ -117,8 +143,9 @@ class AuthRequest(db.Model, Timestamp):
     ]
 
     CATEGORIES = [
-        ('pro', 'Professionnelle'),
+        ('agropasto', 'Agro-pastorale'),
         ('salese', 'Salèse'),
+        ('legacy', 'Importée'),
         ('other', 'Autre')
     ]
 
@@ -128,14 +155,18 @@ class AuthRequest(db.Model, Timestamp):
         nullable=False,
         default='other'
     )
-    number = db.Column(db.String(10), nullable=False)
+    number = db.Column(
+        db.String(10),
+        nullable=False,
+        default=generate_auth_number
+    )
 
     request_date = db.Column(db.Date, default=date.today)
 
     motive_id = db.Column(db.ForeignKey('auth_circu.t_request_motive.id'))
     motive = relationship("RequestMotive", backref="requests")
 
-    author_gender = db.Column(ChoiceType(GENDERS), nullable=False)
+    author_gender = db.Column(ChoiceType(GENDERS))
     author_name = db.Column(db.Unicode(128))
     author_address = db.Column(db.Unicode(256))
     author_phone = db.Column(db.Unicode(32))
@@ -147,8 +178,8 @@ class AuthRequest(db.Model, Timestamp):
         backref='requests'
     )
 
-    auth_start_date = db.Column(db.Date, default=date.today)
-    auth_end_date = db.Column(db.Date, default=in_one_year)
+    auth_start_date = db.Column(db.Date)
+    auth_end_date = db.Column(db.Date)
     rules = db.Column(db.UnicodeText)
 
     vehicules = db.Column(ScalarListType(str))
@@ -159,6 +190,9 @@ class AuthRequest(db.Model, Timestamp):
     template_id = db.Column(db.ForeignKey('auth_circu.t_letter_template.id'))
     template = relationship("LetterTemplate", backref="requests")
     custom_template = deferred(db.Column(db.UnicodeText))
+
+    active = db.Column(db.Boolean, default=True, nullable=False)
+    valid = db.Column(db.Boolean, default=False)
 
     def serialize(self):
 
@@ -179,42 +213,25 @@ class AuthRequest(db.Model, Timestamp):
 
         return {
             'id': str(self.id),
-            'category': self.category.value,
+            'category': self.category.code,
             'number': self.number,
             'request_date': request_date,
             'motive': self.motive.serialize() if self.motive else None,
-            'author_gender': self.author_gender.value,
+            'author_gender': getattr(self.author_gender, 'code', None),
             'author_name': self.author_name,
             'author_address': self.author_address,
             'author_phone': self.author_phone,
-            'proof_documents': self.proof_documents,
+            'proof_documents': self.proof_documents or [],
             'places': [place.serialize() for place in self.places],
             'auth_start_date': auth_start_date,
             'auth_end_date': auth_end_date,
             'rules': self.rules,
-            'vehicules': self.vehicules,
+            'vehicules': self.vehicules or [],
             'group_vehicules_on_doc': self.group_vehicules_on_doc,
-            'created': f'{self.created:%d/%m/%Y}'
+            'created': f'{self.created:%d/%m/%Y}',
+            'active': self.active,
+            'valid': self.valid
         }
-
-    @classmethod
-    def generate_number(cls, year=None, baseline=1):
-        year = str(year or date.today().year)
-
-        # get the request with the highest number for this year
-        last_req = (AuthRequest.query
-                               .filter(AuthRequest.number.like(f'{year}%'))
-                               .order_by(AuthRequest.number.desc())
-                               .options(load_only("number"))
-                               .first())
-
-        # extract it if it exists or start the counter at 1
-        if last_req:
-            num = int(last_req.number.split('c')[-1]) + 1
-        else:
-            num = baseline
-
-        return f"{year}-c{num:04}"
 
     def __repr__(self):
         return f"<AuthRequest id='{self.id}'>"

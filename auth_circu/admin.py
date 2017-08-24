@@ -39,6 +39,7 @@ class AuthenticatedModelView(ModelView):
     """ Common features for all our admin configurations classes """
     model_form_converter = SQLAUtilsModelConverter
     column_exclude_list = form_excluded_columns = ('created', 'updated')
+    can_delete = False
 
     @check_auth(
         3,
@@ -66,7 +67,7 @@ class RestrictedPlaceView(AuthenticatedModelView):
         'name': 'Nom',
         'category': 'Categorie'
     }
-    form_columns = ['name', 'category']
+    form_columns = ['name', 'category', 'active']
 
 
 def setup_admin(app):

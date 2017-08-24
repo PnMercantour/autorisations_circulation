@@ -5,8 +5,7 @@ import operator
 import calendar
 
 from io import BytesIO
-from pathlib import Path
-from datetime import datetime
+from datetime import datetime, date
 
 import flask_excel
 
@@ -24,16 +23,19 @@ from flask import (
     redirect,
     g,
     jsonify,
-    send_file
+    send_file,
+    Response
 )
 
+from werkzeug.exceptions import abort
 from werkzeug.exceptions import BadRequest
 
 from pypnusershub.db.tools import AccessRightsError, user_from_token
 from pypnusershub.routes import check_auth
 
 from .conf import app
-from .db.models import AuthRequest, RequestMotive, RestrictedPlace
+from .db.models import AuthRequest, RequestMotive, RestrictedPlace, db
+from .db.utils import get_object_or_abort, model_to_json
 from .admin import setup_admin
 
 setup_admin(app)
@@ -85,14 +87,53 @@ def home():
 @app.route("/authorizations/new")
 @check_auth(2, redirect_on_expiration="/", redirect_on_invalid_token="/")
 def auth_form():
+    category = request.args.get('category', 'other')
+
+    if category == "agropasto":
+        filter = RestrictedPlace.category != "legacy"
+    else:
+        filter = RestrictedPlace.category == "piste"
+
     motives = RequestMotive.query.order_by(RequestMotive.created.asc())
     places = (RestrictedPlace.query
-                             .filter(RestrictedPlace.category != "legacy")
-                             .order_by(RestrictedPlace.name.asc()))
+                             .filter(
+                                 filter &
+                                 (RestrictedPlace.active == True)  # noqa
+                             ).order_by(RestrictedPlace.name.asc()))
+
     return render_template(
         'auth_form.html',
         motives=motives,
+        category=request.args.get('category', 'other'),
         places=json.dumps([place.serialize() for place in places])
+    )
+
+
+@app.route("/authorizations/<auth_id>")
+@check_auth(2, redirect_on_expiration="/", redirect_on_invalid_token="/")
+def auth_edit_form(auth_id):
+    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+
+    motives = RequestMotive.query.order_by(RequestMotive.created.asc())
+
+    if auth_req.category == "agropasto":
+        filter = RestrictedPlace.category != "legacy"
+    else:
+        filter = RestrictedPlace.category == "piste"
+
+    places = (RestrictedPlace.query
+                             .filter(
+                                 filter &
+                                 (RestrictedPlace.active == True)  # noqa
+                             ).order_by(RestrictedPlace.name.asc()))
+
+    return render_template(
+        'auth_form.html',
+        motives=motives,
+        category=request.args.get('category', 'other'),
+        places=json.dumps([place.serialize() for place in places]),
+        auth_request=model_to_json(auth_req),
+        auth_num=auth_req.number
     )
 
 
@@ -100,19 +141,24 @@ def auth_form():
 @app.route("/authorizations")
 @check_auth(1, redirect_on_expiration="/", redirect_on_invalid_token="/")
 def listing():
-
     now = datetime.utcnow()
     # Find the oldest year to start from
     oldest_auth_date = (
         AuthRequest.query
-                   .filter(AuthRequest.auth_start_date is not None)
+                   .filter(
+                       (AuthRequest.auth_start_date != None) &  # noqa
+                       (AuthRequest.active == True)
+                    )
                    .order_by(AuthRequest.auth_start_date.asc())
                    .first().auth_start_date
     )
 
     oldest_request_date = (
         AuthRequest.query
-                   .filter(AuthRequest.request_date is not None)
+                   .filter(
+                       (AuthRequest.request_date != None) &  # noqa
+                       (AuthRequest.active == True)
+                    )
                    .order_by(AuthRequest.request_date.asc())
                    .first().request_date
     )
@@ -150,6 +196,7 @@ def listing():
 
 
 @app.route('/exports/authorizations', methods=['post'])
+@check_auth(1)
 def export_authorizations():
     try:
         authorizations = request.json['authorizations']
@@ -179,7 +226,7 @@ def export_authorizations():
             'Homme': 'M. ',
             'Femme': 'Mme. ',
             'N/A': ''
-        }[auth.get('author_gender', 'N/A')]
+        }[auth.get('author_prefix', 'N/A')]
         name += auth.get('author_name') or ''
 
         rows.append([
@@ -201,6 +248,7 @@ def export_authorizations():
 
 
 @app.route('/api/v1/authorizations', methods=['GET'])
+@check_auth(1)
 def api_get_authorizations():
 
     # check that the HTTP request is valid
@@ -237,6 +285,7 @@ def api_get_authorizations():
         AuthRequest.query
                     # preload data from other table
                     # to speed up later serialization
+                    .filter(AuthRequest.active == True)
                     .options(
                         joinedload(AuthRequest.places),
                         joinedload(AuthRequest.motive),
@@ -299,7 +348,6 @@ def api_get_authorizations():
             #  Keep any of the above
             if status == "both":
                 auth_requests = auth_requests.filter(is_active | is_emitted)
-
 
     else:  # Filter by status, year AND by month
 
@@ -374,8 +422,73 @@ def api_get_authorizations():
     return jsonify([obj.serialize() for obj in auth_requests])
 
 
+@app.route('/api/v1/authorizations', methods=['POST'])
+@check_auth(2)
+def api_post_authorizations():
+    """ Create a new authorization.
+
+        We should use some kind of automatic validation for this on the server
+        side, but it's unlikely somebody will try to disable JS in the parc and
+        so to keep the implementation simple (which is a requirement),
+        we will just save the data here without integrity validation and
+        trust client side validation.
+
+        @check_auth still ensure permissions are respected, and SQLAlchemy
+        will automatically sanitize SQL so we should be ok security wise.
+    """
+    def parseDate(string):
+        if not string:
+            return None
+        values = string.split('T')[0].split('-')[:3]
+        return date(*map(int, values))
+
+    places = []
+    for place in request.json['authorizationPlaces']:
+        filter = RestrictedPlace.id == place['id']
+        places.append(RestrictedPlace.query.filter(filter).one())
+
+    auth_req = AuthRequest(
+        category=request.json['category'],
+        request_date=parseDate(request.json['date']),
+        motive_id=request.json['motive'],
+        author_prefix=request.json['authorPrefix'],
+        author_name=request.json['authorName'],
+        author_address=request.json['authorAddress'],
+        author_phone=request.json['authorPhone'],
+        group_vehicules_on_doc=request.json['groupVehicules'],
+        auth_start_date=parseDate(request.json['authorizationStartDate']),
+        auth_end_date=parseDate(request.json['authorizationEndDate']),
+        proof_documents=request.json['docs'],
+        rules=request.json['authorizationPrescriptions'],
+        vehicules=request.json['authorizationVehicules'],
+        places=places
+    )
+
+    db.session.add(auth_req)
+    db.session.commit()
+    return jsonify(auth_req.serialize())
+
+
+@app.route('/api/v1/authorizations/<auth_id>', methods=['DELETE'])
+@check_auth(2)
+def api_delete_authorization(auth_id):
+    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+    if auth_req.valid:
+        return abort(400, message="You can delete non draft authorization.")
+    db.session.delete(auth_req)
+    db.session.commit()
+    return Response('ok')
+
+
 @app.route('/favicon.ico')
 def favicon():
+    """ Serve favicon on dev server. Override this with nginx or apache """
     return send_from_directory(os.path.join(app.root_path, 'static'),
                                'img/favicon.ico',
                                mimetype='image/vnd.microsoft.icon')
+
+
+@app.errorhandler(404)
+@app.errorhandler(403)
+def redirect_to_listing(e):
+    return redirect('/authorizations', code=302)

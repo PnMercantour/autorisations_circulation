@@ -42,38 +42,34 @@ angular.module('auth_circu')
       // loops to avoid to many function calls
       function (authRequest, index, array) {
 
-        var ok = false;
-
-        // all filters must be ok
-        mainLoop: for (var i = 0; i < filters.length; i++){
+        // one of filters must be ok
+        for (var i = 0; i < filters.length; i++){
 
           var filter = filters[i];
 
           // check the request author name
           if (normalize(authRequest.author_name || '').indexOf(filter) !== -1){
-            continue mainLoop;
+            return true;
           }
 
           // check the places names
-          for (var y = 0; y < authRequest.places.length; y++) {
+          for (var y = 0, l = authRequest.places.length; y < l; y++) {
             var place = normalize(authRequest.places[y].name);
             if (place.indexOf(filter) !== -1){
-              continue mainLoop;
+              return true;
             }
           }
 
           // check the vehicule numberplate
-          for (var y = 0; y < authRequest.vehicules.length; y++) {
+          for (var y = 0, l = authRequest.vehicules.length; y < l; y++) {
             var numberplate = normalize(authRequest.vehicules[y]);
             if (numberplate.indexOf(filter) !== -1){
-              continue mainLoop;
+              return true;
             }
           }
-
-          return false;
-
         }
-        return true;
+
+        return false;
       }
 
     );

@@ -75,7 +75,7 @@ Le fichier de configuration devrait ressembler à ceci:
     database_uri = postgresql://nomutilisateur:motdepasse@host:port/nombasededonnees
     secret_key = ga1CY.0mX[2Jcz@^+=#rPnB)"vAwr3~%QpY^Y]|=hn,!XBW(l0
 
- Il permett de configurer la connexion à la base de données et fournir une clé secrète qui sécurise l'authentification de l'application. Ne partagez pas son contenu. Ne le rendez pas accessible. Ne le commitez pas sur git. Utilisez une autre clé secrète que celle-ci.
+ Il permet de configurer la connexion à la base de données et fournir une clé secrète qui sécurise l'authentification de l'application. Ne partagez pas son contenu. Ne le rendez pas accessible. Ne le commitez pas sur git. Utilisez une autre clé secrète que celle-ci.
 
 Assurez-vous également que côté base de données:
 

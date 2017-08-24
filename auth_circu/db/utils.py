@@ -1,4 +1,5 @@
 
+import json
 import string
 import random
 
@@ -10,6 +11,9 @@ from datetime import datetime
 
 from sqlalchemy.orm import exc
 from sqlalchemy import create_engine
+
+from werkzeug.exceptions import abort
+
 
 from pypnusershub.db.models import (
     db, Application, User, UserApplicationRight, ApplicationRight
@@ -190,13 +194,9 @@ def populate_db(data_file, db=db):
                     else:
                         restricted_place = all_places[norm_str]
 
-                    if "salese" in norm_str or "saleze" in norm_str:
-                        request_categ = 'salese'
-
                     places.append(restricted_place)
 
             # Get the gender of the person making the request
-            # TODO: what do we display in the template for N/A ?
             gender = row['CIVILITE']
             if not gender:
                 gender = "na"
@@ -223,12 +223,13 @@ def populate_db(data_file, db=db):
             number = row['NUMERO AUTORISATION']
             if not number:
                 base = start_date.year if start_date else '????'
-                number = auth_circu.db.models.AuthRequest.generate_number(base)
+                number = auth_circu.db.models.generate_auth_number(base)
 
             # TODO: put a "note" ?
             auth_req = auth_circu.db.models.AuthRequest(
+                valid=True,
                 number=number,
-                category=request_categ,
+                category='legacy',
                 author_name=name or None,
                 author_gender=gender,
                 author_address=address or None,
@@ -236,11 +237,11 @@ def populate_db(data_file, db=db):
                 auth_start_date=start_date,
                 auth_end_date=end_date,
                 vehicules=list(vehicules),
-                proof_documents={
+                proof_documents=[{
                     "legacy_info": row['JUSTIFICATIF'],
                     "expiration": row['DATE JUSTIFICATIF'],
                     "doc_type": None
-                }
+                }]
             )
 
             auth_req.request_date = auth_req.auth_start_date or auth_req.auth_end_date or datetime.today()
@@ -273,3 +274,31 @@ def populate_db(data_file, db=db):
                 yield row
 
         db.session.commit()
+
+
+def get_object(model, *filters, default=None):
+    """ Return SQLA object or a default value """
+    try:
+        return model.query.filter(*filters).one()
+    except (exc.NoResultFound, exc.MultipleResultsFound):
+        return default
+
+
+def get_object_or_abort(model, *filters, code=404):
+    """ Return SQLA object or a abort the request """
+    obj = get_object(model, *filters)
+    if obj is None:
+        return abort(404)
+    return obj
+
+
+def model_to_json(obj):
+    """ Take a serializable model and turn it to JSON
+        Keys are converted to proper naming convention
+    """
+    res = {}
+    # convert key from snake_case to camelCase
+    for key, val in obj.serialize().items():
+        head, *tail = key.split('_')
+        res[head + ''.join(chunk.title() for chunk in tail)] = val
+    return json.dumps(res)

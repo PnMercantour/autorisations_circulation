@@ -14,6 +14,8 @@
   <script>
     // avoid an additional ajax request
     window.PRELOAD_PLACES = {{ places|safe }};
+
+    window.PRELOAD_REQUEST = {{ auth_request|safe }};
   </script>
 
   <script src="{{ url_for('static', filename='js/select.js') }}"
@@ -22,11 +24,21 @@
         type="text/javascript" charset="utf-8" ></script>
 {% endblock extrajs %}
 
-{% block title %}Nouvelle autorisations - {{ super() }}{% endblock title %}
+{% block title %}
+  {% if auth_num %}
+    Autorisation {{ auth_num }}
+  {% else %}
+    Nouvelle autorisation - {{ super() }}
+  {% endif %}
+{% endblock title %}
 {% block h1 %}
   <a class="glyphicon glyphicon-chevron-left backbutton"
      href="/" target="_self"></a>
-  Nouvelle autorisation
+     {% if auth_num %}
+     Autorisation {{ auth_num }}
+   {% else %}
+     Nouvelle autorisation
+   {% endif %}
 {% endblock h1 %}
 
 {% block content %}
@@ -34,12 +46,28 @@
 
 <form method="post" accept-charset="utf-8"
       ng-controller="RequestFormCtrl as vm"
-      class='form-inline'>
+      class="form-inline"
+      name="vm.requestForm"
+      novalidate
+      ng-submit="vm.save($event)">
 
   <fieldset class="request">
-
-    <legend>Demande</legend>
-
+    <legend class="ng-cloak"
+            ng-show="vm.request.category === 'salese'">
+        Demande pour Salèse
+    </legend>
+    <legend class="ng-cloak"
+            ng-show="vm.request.category === 'agropasto'">
+        Demande Agro-pastorale
+    </legend>
+    <legend class="ng-cloak"
+            ng-show="vm.request.category === 'other'">
+        Autre demande
+    </legend>
+    <legend class="ng-cloak"
+            ng-show="vm.request.category === 'legacy'">
+      Demande importée
+    </legend>
     {% raw %}
 
         <div class="row">
@@ -51,7 +79,7 @@
 
               <input type="text" class="form-control"
                      uib-datepicker-popup="dd/MM/yyyy"
-                     ng-model="vm.request.date"
+                     ng-model="vm.request.requestDate"
                      is-open="vm.requestDatePicker.opened"
                      datepicker-options="{startingDay: 1}"
                      ng-required="true"
@@ -69,13 +97,16 @@
 
             <label class="inline-between">par</label>
 
-            <select name="genre" ng-model="vm.request.author.prefix">
+            <select name="genre"
+                    required
+                    ng-model="vm.request.authorGender">
               <option value="n/a">N/A</option>
               <option value="m">M.</option>
               <option value="f">Mme.</option>
             </select>
 
-            <input type="text" name="candidate" "vm.request.author.name"
+            <input type="text" name="candidate"
+                   ng-model="vm.request.authorName"
                    placeholder="Nom" required>
 
           </div>
@@ -87,7 +118,7 @@
           <div class="col-md-4 address">
             <p><label>Adresse</label></p>
             <p>
-              <textarea ng-model="vm.request.author.address"
+              <textarea ng-model="vm.request.authorAddress"
                         required></textarea>
             </p>
           </div>
@@ -96,20 +127,38 @@
             <p><label>Téléphone (optionnel)</label></p>
             <p>
               <input type="tel" name="phone"
-                     ng-model="vm.request.author.phone">
+                     ng-model="vm.request.authorPhone"
+                     pattern="[0-9/. +-]+">
             </p>
           </div>
         </div>
-
-        <div class="row motive">
+        <div class="row motive ng-cloack"
+             ng-show="vm.request.category === 'other' || vm.request.category === 'legacy'">
           <div class="col-md-7">
             <label class="inline-left">Motif</label>
             <select name="motive" required
-                    ng-model="vm.request.motive">
+                    ng-model="vm.request.motive"
+               >
               {% endraw %}
 
               {% for motive in motives %}
-                <option value="{{ motive.id }}">{{ motive.name }}</option>
+
+                {% if category == "salese" and "Salèse" in motive.name %}
+                  <option value="{{ motive.id }}"
+                          ng-init="vm.request.motive = '{{ motive.id}}'">
+                    {{ motive.name }}
+                  </option>
+
+                {% elif category == "pro" and "commerciales" in motive.name %}
+                <option value="{{ motive.id }}"
+                        ng-init="vm.request.motive = '{{ motive.id}}'">
+                  {{ motive.name }}
+                </option>
+                {% else %}
+                  <option value="{{ motive.id }}">
+                    {{ motive.name }}
+                  </option>
+                {% endif %}
               {% endfor %}
 
               {% raw %}
@@ -123,35 +172,35 @@
           </div>
         </div>
 
-        <div class="row proofdoc" ng-repeat="doc in vm.request.docs">
+        <div class="row proofdoc" ng-repeat="doc in vm.request.proofDocuments">
 
-          <div class="col-md-7">
+          <div class="col-md-10">
 
             <a href="#" class="delete"
                ng-click="vm.removeDoc($event, $index)">
               <span class="glyphicon glyphicon-trash"></span>
             </a>
 
-            <label class="inline-left">Type</label>
-            <select ng-model="doc.type" required >
-              {#     TODO: get that from DB #}
-              <option value="carteGrise">Carte Grise</option>
-              <option value="proofOfAddress">Justificatif de domicile</option>
-              <option value="CMI">Carte mobilité inclusion</option>
-            </select>
+            <span ng-if="::!(doc.legacy_info || doc.expiration)">
+              <label class="inline-left">Type</label>
+              <select ng-model="doc.type" required >
+                <option value="carteGrise">Carte Grise</option>
+                <option value="proofOfAddress">Justificatif de domicile</option>
+                <option value="CMI">Carte mobilité inclusion</option>
+              </select>
 
-            <label class="inline-between">Date de reception</label>
+              <label class="inline-between">Date de reception</label>
               <span class="input-group">
 
                 <input type="text" class="form-control"
-                       uib-datepicker-popup="dd/MM/yyyy"
-                       ng-model="doc.date"
-                       is-open="doc.datePicker.opened"
-                       datepicker-options="{startingDay: 1}"
-                       required
-                       close-text="Fermer"
-                       current-text="Aujourd'hui"
-                       clear-text="Supprimer"  />
+                        uib-datepicker-popup="dd/MM/yyyy"
+                        ng-model="doc.date"
+                        is-open="doc.datePicker.opened"
+                        datepicker-options="{startingDay: 1}"
+                        required
+                        close-text="Fermer"
+                        current-text="Aujourd'hui"
+                        clear-text="Supprimer"  />
                 <span class="input-group-btn">
                   <button type="button" class="btn btn-default"
                           ng-click="doc.datePicker.opened = true">
@@ -160,9 +209,16 @@
                 </span>
 
               </span>
+            </span>
 
+            <span class="ng-cloak"
+                  ng-if="::(doc.legacy_info || doc.expiration)">
+              <label class="inline-left">Donnée importée</label>
+              {{ doc.legacy_info }} {{ ::doc.expiration }}
+            </span>
 
           </div>
+
 
         </div>
 
@@ -188,7 +244,9 @@
         <p><label>Lieux concernés</label></p>
 
             <ui-select on-select="vm.addPlace($item)"
-                       ng-model="vm.newPlace" theme="bootstrap">
+                       ng-model="vm.newPlace"
+                       name="places"
+                       theme="bootstrap">
                 <ui-select-match>
                     <span ng-bind="$select.selected.name"></span>
                 </ui-select-match>
@@ -199,7 +257,7 @@
 
         {% raw %}
         <ul class="place-list">
-          <li ng-repeat="place in vm.request.authorization.places track by place.id" >
+          <li ng-repeat="place in vm.request.places track by place.id" >
             <a href="#" class="delete" ng-click="vm.removePlace($event, $index)">
               <span class="glyphicon glyphicon-trash"></span>
             </a>
@@ -218,20 +276,21 @@
         <h4>Pour la période</h4>
       </div>
 
-      <div class="col-md-7">
+      <div class="col-md-8">
 
         <label class="inline-left">Du</label>
         <span class="input-group">
 
           <input type="text" class="form-control"
                  uib-datepicker-popup="dd/MM/yyyy"
-                 ng-model="vm.authorization.startDate"
+                 ng-model="vm.request.authStartDate"
                  is-open="vm.startDate.datePicker.opened"
-                 datepicker-options="{startingDay: 1}"
+                 datepicker-options="{startingDay: 1, minDate: vm.minRequestDate, maxDate: vm.endDate || vm.maxDate}"
                  ng-required="true"
                  close-text="Fermer"
                  current-text="Aujourd'hui"
-                 clear-text="Supprimer"  />
+                 clear-text="Supprimer"
+                 />
           <span class="input-group-btn">
             <button type="button" class="btn btn-default"
                     ng-click="vm.startDate.datePicker.opened = true">
@@ -246,13 +305,14 @@
 
           <input type="text" class="form-control"
                  uib-datepicker-popup="dd/MM/yyyy"
-                 ng-model="vm.authorization.endDate"
+                 ng-model="vm.request.authEndDate"
                  is-open="vm.endDate.datePicker.opened"
-                 datepicker-options="{startingDay: 1}"
+                 datepicker-options="{startingDay: 1, maxDate: vm.maxRequestDate, minDate: vm.startDate || vm.minDate}"
                  ng-required="true"
                  close-text="Fermer"
                  current-text="Aujourd'hui"
-                 clear-text="Supprimer"  />
+                 clear-text="Supprimer"
+          />
           <span class="input-group-btn">
             <button type="button" class="btn btn-default"
                     ng-click="vm.endDate.datePicker.opened = true">
@@ -265,17 +325,17 @@
 
     </div>
 
-    <div class="row rules prescriptions">
+    <div class="row rules prescriptions ng-cloak"
+         ng-hide="vm.request.category !== 'other'">
       <div class="col-md-6">
         <p>
-          <label>Prescriptions</label>
+          <label>Prescriptions (optionnel)</label>
         </p>
-        <textarea ng-model="vm.authorization.prescriptions"></textarea>
+        <textarea ng-model="vm.rules"></textarea>
       </div>
     </div>
 
   </fieldset>
-
 
   <fieldset>
     <legend>Véhicules</legend>
@@ -285,7 +345,7 @@
       <div class="col-md-7">
         <p>
           <label class="inline-left">Immatriculation</label>
-          <input type="text" ng-model="vm.authorizations.vehicules"
+          <input type="text" ng-model="vm.request.vehicules"
                  ng-list required placeholder="Ex: 899XT06, 737RT13"
           >
         </p>
@@ -293,7 +353,8 @@
 
     </div>
 
-    <div class="row groupVehicules">
+    <div class="row groupVehicules ng-cloak"
+         ng-show="vm.request.category !== 'agropasto'">
       <p>
         <label>
           <input type="checkbox" id="cbox1" value="groupCards"
@@ -313,14 +374,38 @@
 
       <p>Modèles de lettre par défaut. <a href="#">Modifier</a>.</p>
 
-      <p>
-        <a href="#">Annuler</a>
-
-        <button class="btn btn-default">
-          Sauvegarder
-        </button>
+      <p ng-if="!vm.request.valid && vm.request.id"
+        class="delete-draft-button">
+          <button class="btn btn-danger"
+                  ng-click="vm.deleteDraft($event)">
+                Supprimer ce brouillon
+          </button>
       </p>
 
+      <p>
+        <a href="/authorizations">Annuler</a>
+
+        <button class="btn btn-default"
+                ng-if="!vm.request.valid"
+                ng-click="vm.saveDraft($event)">
+          Enregistrer le brouillon
+        </button>
+
+        <button class="btn btn-default"
+                ng-if="vm.request.valid"
+                disabled>
+          Brouillon interdit
+        </button>
+
+        {% raw %}
+
+        <button ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
+                ng-click="vm.save($event)"
+        >
+          Sauvegarder & générer les documents
+        </button>
+      </p>
+      {% endraw %}
     </fieldset>
 
   </footer>

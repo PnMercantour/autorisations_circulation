@@ -10,8 +10,6 @@ from textwrap import dedent
 
 from flask import Flask
 
-#TODO: ANONYMISER LES DONNEES DE TEST
-
 LOCALE = ('fr_FR', 'UTF-8')
 
 try:
@@ -80,7 +78,6 @@ if need_config_file:
     except ValueError:
         sys.exit(f'"AUTHCIRCU_USERSHUB_APP_ID" should be a number')
 
-
     app.config['SQLALCHEMY_DATABASE_URI'] = sql_db_uri
 
     # Retire l'alerte indiquant que ce paramètre est déprécié
@@ -97,6 +94,9 @@ if need_config_file:
     app.config['SECRET_KEY'] = secret_key
     app.config['COOKIE_AUTORENEW'] = True
     app.config['COOKIE_EXPIRATION'] = 60 * 60 * 8  # 8 hours
+    # prevent pypnuserhub to hide useful exceptions, such a redirections
+    # and debug informations
+    app.config['TRAP_ALL_EXCEPTIONS'] = False
 
     app.config['AUTHCIRCU_USERSHUB_APP_ID'] = usershub_app_id
     app.config['BAD_LOGIN_STATUS_CODE'] = 400

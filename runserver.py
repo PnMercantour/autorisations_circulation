@@ -1,7 +1,11 @@
+"""
+    Dev server. Do not use this in production.
+
+    Use a WSGI setup instead.
+"""
 
 import os
 import argparse
-
 
 parser = argparse.ArgumentParser(description='Run the development server')
 parser.add_argument('--config-file', help='Path to the config file')
@@ -15,4 +19,9 @@ from auth_circu.routes import app  # noqa
 from auth_circu.db.utils import init_db  # noqa
 
 init_db(app)
-app.run(host=args.host, port=args.port)
+
+# help for debugging. Do not use that in producting.
+app.config['DEBUG'] = True
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = True
+
+app.run(host=args.host, port=args.port, threaded=True)

@@ -42,17 +42,17 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-right" uib-dropdown-menu>
             <li>
-              <a href="{{ url_for('auth_form') }}" target="_self">
+              <a href="{{ url_for('auth_form') }}?category=agropasto" target="_self">
                 Professionnelle
               </a>
               </li>
             <li>
-              <a href="#" target="_self">
+              <a href="{{ url_for('auth_form') }}?category=salese" target="_self">
                 Pour Salèse
               </a>
             </li>
             <li>
-              <a href="#" target="_self">
+              <a href="{{ url_for('auth_form') }}" target="_self">
                 Autre
               </a>
             </li>

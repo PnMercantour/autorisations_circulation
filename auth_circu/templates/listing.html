@@ -84,7 +84,7 @@
       <form action="." ng-submit="vm.onSubmitSearch($event)"
             class="input-group search" class="col-lg-5 col-md-12">
         <input type="text" class="form-control"
-               placeholder="Ex: Salèze + VM 89"
+               placeholder="Ex: Salèse + VM 89"
                ng-model="vm.search"
                ng-change="vm.onChange()"
         >
@@ -134,7 +134,8 @@
 
     <tbody>
 
-      <tr ng-repeat="auth in vm.authorizations.filteredListing track by auth.id">
+      <tr ng-repeat="auth in vm.authorizations.filteredListing track by auth.id"
+          ng-class="{'invalid': !auth.valid}">
         {% raw %}
         <td class="date">
             <span ng-if="::auth.auth_start_date">
@@ -153,10 +154,10 @@
         <td class="candidate">
           <p ng-if="::auth.author_name">
             <strong>
-              <span ng-if="::auth.author_gender === 'Homme'">
+              <span ng-if="auth.author_gender === 'm'">
                   M.
               </span>
-              <span ng-if="::auth.author_gender === 'Femme'">
+              <span ng-if="auth.author_gender === 'f'">
                   Mme.
               </span>
               {{ ::auth.author_name }}
@@ -175,13 +176,17 @@
         <td>{{ ::auth.vehicules|join:', '}}</td>
 
         <td class="document">
-          <a href="#">2017-C0001 (TODO)</a>
+          <a ng-if="::auth.valid" href="#">2017-C0001 (TODO)</a>
+          <span ng-if="::!auth.valid" class="glyphicon glyphicon-warning-sign">
+            Brouillon
+          </span>
         </td>
 
         <td class="edit">
-          <a href="/"><span class="glyphicon glyphicon-pencil"></span></a>
+          <a ng-href="/authorizations/{{ ::auth.id }}" target="_self">
+            <span class="glyphicon glyphicon-pencil"></span>
+          </a>
           <a href="/"><span class="glyphicon glyphicon-duplicate"></span></a>
-          (TODO)
         </td>
 
         {% endraw %}

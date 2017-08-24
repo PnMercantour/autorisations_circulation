@@ -15,6 +15,10 @@ Global
   display: none !important;
 }
 
+.ng-dirty.ng-invalid:not(form) {
+  border: 2px solid rgba(198, 71, 71, 0.69);
+}
+
 
 /* Header */
 
@@ -362,6 +366,10 @@ Forms
 
 #auth-form .places li{
   list-style: none;
+}
+
+#auth-form .delete-draft-button {
+  float: left;
 }
 
 /* Override boostrap default inline form style*/
