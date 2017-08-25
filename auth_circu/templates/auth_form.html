@@ -15,7 +15,9 @@
     // avoid an additional ajax request
     window.PRELOAD_PLACES = {{ places|safe }};
 
-    window.PRELOAD_REQUEST = {{ auth_request|safe }};
+    {% if auth_request %}
+      window.PRELOAD_REQUEST = {{ auth_request|safe }};
+    {% endif %}
   </script>
 
   <script src="{{ url_for('static', filename='js/select.js') }}"
@@ -100,7 +102,7 @@
             <select name="genre"
                     required
                     ng-model="vm.request.authorGender">
-              <option value="n/a">N/A</option>
+              <option value="na">N/A</option>
               <option value="m">M.</option>
               <option value="f">Mme.</option>
             </select>
@@ -331,7 +333,7 @@
         <p>
           <label>Prescriptions (optionnel)</label>
         </p>
-        <textarea ng-model="vm.rules"></textarea>
+        <textarea ng-model="vm.request.rules"></textarea>
       </div>
     </div>
 
@@ -358,7 +360,7 @@
       <p>
         <label>
           <input type="checkbox" id="cbox1" value="groupCards"
-                 ng-model="vm.request.groupVehicules"
+                 ng-model="vm.request.groupVehiculesOnDoc"
           >
           <span>Grouper tous les véhicules sur un même carton</span>
         </label>
@@ -368,7 +370,7 @@
 
   </fieldset>
 
-  <footer>
+  <footer id="footer">
 
     <fieldset>
 
@@ -382,19 +384,29 @@
           </button>
       </p>
 
+
       <p>
-        <a href="/authorizations">Annuler</a>
+        <a href="/authorizations" target="_self">Quitter</a>
 
-        <button class="btn btn-default"
+        <button ng-class="{'btn': true, 'btn-default': vm.requestForm.$dirty, 'btn-info': !vm.requestForm.$dirty}"
                 ng-if="!vm.request.valid"
-                ng-click="vm.saveDraft($event)">
-          Enregistrer le brouillon
+                ng-click="vm.saveDraft($event)"
+                ng-disabled="!vm.requestForm.$dirty">
+          <span ng-if="vm.requestForm.$dirty">
+              Enregistrer le brouillon
+          </span>
+          <span ng-if="!vm.requestForm.$dirty">
+              Bouillon à jour
+          </span>
+          <i ng-if="!vm.requestForm.$dirty"
+             class="glyphicon glyphicon-ok"></i>
+          <i ng-if="vm.status === 'savingDraft'"
+             class="glyphicon glyphicon-refresh glyphicon-spin"></i>
         </button>
-
         <button class="btn btn-default"
                 ng-if="vm.request.valid"
                 disabled>
-          Brouillon interdit
+          Ceci n'est plus un brouillon
         </button>
 
         {% raw %}
@@ -403,6 +415,10 @@
                 ng-click="vm.save($event)"
         >
           Sauvegarder & générer les documents
+          <i ng-if="vm.status === 'saving'"
+             class="glyphicon glyphicon-refresh glyphicon-spin"></i>
+          <i ng-if="vm.status === 'saved'"
+             class="glyphicon glyphicon-ok"></i>
         </button>
       </p>
       {% endraw %}

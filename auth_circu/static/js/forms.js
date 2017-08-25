@@ -14,6 +14,7 @@ angular.module('auth_request', [
   vm.places = window.PRELOAD_PLACES;
   vm.minRequestDate = undefined;
   vm.maxRequestDate = undefined;
+  vm.status = "start";
 
   vm.request = {
     requestDate: new Date(),
@@ -28,7 +29,7 @@ angular.module('auth_request', [
     vehicules: [],
     authStartDate: null,
     endDate: null,
-    groupVehicules: false,
+    groupVehiculesOnDoc: false,
     category: $location.search().category || 'other',
     valid: false,
     rules: undefined
@@ -38,6 +39,8 @@ angular.module('auth_request', [
   if (window.PRELOAD_REQUEST){
     vm.request = window.PRELOAD_REQUEST;
 
+    vm.request.motive = vm.request.motive && vm.request.motive.id;
+
     var parseDate = function (string){
       if (!string){
         return null
@@ -46,6 +49,7 @@ angular.module('auth_request', [
       string = string.split('/');
       return new Date(string[2], string[1], string[0]);
     }
+
     vm.request.requestDate = parseDate(vm.request.requestDate);
     vm.request.authStartDate = parseDate(vm.request.authStartDate);
     vm.request.authEndDate = parseDate(vm.request.authEndDate);
@@ -53,7 +57,7 @@ angular.module('auth_request', [
 
   // salese is a specific case: it has date boundaries and a mandatory
   // place
-  if (!vm.request.category == "salese"){
+  if (vm.request.category == "salese"){
     var piste = vm.places.filter(function(place){
       return place.name == "Piste de Salèse"
     })[0];
@@ -75,20 +79,26 @@ angular.module('auth_request', [
       type: "proofOfAddress",
       date: new Date(),
     });
+    vm.requestForm.$setDirty();
   }
 
   vm.removeDoc = function(e, index){
     e.preventDefault();
     vm.request.proofDocuments.splice(index, 1);
+    vm.requestForm.$setDirty();
   }
 
   vm.removePlace = function(e, index){
     e.preventDefault();
     if (vm.request.category === "salese" &&
-        vm.request.places[1].name === "Piste de Salèse"){
-          return
+        vm.request.places[index].name === "Piste de Salèse"){
+        return
     }
     vm.request.places.splice(index, 1);
+    if (!vm.request.length){
+      vm.requestForm.places.$setValidity('required', true);
+    }
+    vm.requestForm.$setDirty();
   }
 
   vm.addPlace = function(newPlace){
@@ -102,14 +112,33 @@ angular.module('auth_request', [
     }
   }
 
-  vm.saveDraft = function(e) {
-    e.preventDefault();
-    $http.post('/api/v1/authorizations', vm.request);
-  };
-
   vm.deleteDraft = function(e) {
     e.preventDefault();
-    $http.delete('/api/v1/authorizations/' + vm.request.id);
+    if (confirm('Voulez-vous vraiment supprimer ce brouillon ?')){
+      $http.delete('/api/v1/authorizations/' + vm.request.id);
+      window.location = '/authorizations';
+    }
+  };
+
+  vm.saveDraft = function(e) {
+    e.preventDefault();
+    vm.status = 'savingDraft';
+    vm.requestForm.$setSubmitted();
+    if (!vm.request.id){
+      $http.post('/api/v1/authorizations', vm.request).then(function(response){
+        vm.requestForm.$setPristine();
+        window.location = '/authorizations/' + response.data.id + "#footer";
+        vm.request = response.data.id;
+        vm.status = 'start';
+      });
+    } else {
+      $http.put('/api/v1/authorizations/' + vm.request.id, vm.request)
+           .then(function(){
+        vm.requestForm.$setPristine();
+        vm.status = 'start';
+      });
+    }
+
   };
 
   vm.save = function(e) {

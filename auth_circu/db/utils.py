@@ -227,7 +227,8 @@ def populate_db(data_file, db=db):
 
             # TODO: put a "note" ?
             auth_req = auth_circu.db.models.AuthRequest(
-                valid=True,
+                valid=False,
+                active=True,
                 number=number,
                 category='legacy',
                 author_name=name or None,

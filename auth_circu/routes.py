@@ -1,4 +1,5 @@
 import os
+import uuid
 import json
 import functools
 import operator
@@ -15,6 +16,7 @@ import pypnusershub.routes
 
 from sqlalchemy.orm import joinedload
 from sqlalchemy import extract
+from sqlalchemy.orm.session import make_transient
 
 from flask import (
     render_template,
@@ -137,6 +139,20 @@ def auth_edit_form(auth_id):
     )
 
 
+@app.route("/authorizations/<auth_id>/clone")
+@check_auth(2, redirect_on_expiration="/", redirect_on_invalid_token="/")
+def clone_auth(auth_id):
+    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+    db.session.expunge(auth_req)
+    make_transient(auth_req)
+    auth_req.request_date = date.today()
+    auth_req.id = uuid.uuid4()
+    auth_req.valid = False
+    db.session.add(auth_req)
+    db.session.commit()
+    return redirect('/authorizations/' + str(auth_req.id), code=302)
+
+
 # if you change this route, change it in script.js too
 @app.route("/authorizations")
 @check_auth(1, redirect_on_expiration="/", redirect_on_invalid_token="/")
@@ -195,7 +211,7 @@ def listing():
     )
 
 
-@app.route('/exports/authorizations', methods=['post'])
+@app.route('/exports/authorizations', methods=['POST'])
 @check_auth(1)
 def export_authorizations():
     try:
@@ -266,7 +282,9 @@ def api_get_authorizations():
         if month != "all-months":
             month = int(month)
         if str(month) not in MONTHS_VALUES:
-            raise BadRequest(f'"month" must be among: {", ".join(MONTHS_VALUES)}')
+            raise BadRequest(
+                f'"month" must be among: {", ".join(MONTHS_VALUES)}'
+            )
     except ValueError:
         raise BadRequest('"month" must be an int or "all-months"')
     except KeyError:
@@ -275,7 +293,9 @@ def api_get_authorizations():
     try:
         status = request.args['status']
         if status not in AUTH_STATUS.keys():
-            raise BadRequest(f'"status" must be among: {", ".join(AUTH_STATUS.keys())}')
+            raise BadRequest(
+                f'"status" must be among: {", ".join(AUTH_STATUS.keys())}'
+            )
     except KeyError:
         raise BadRequest('"status" must be provided')
 
@@ -285,7 +305,7 @@ def api_get_authorizations():
         AuthRequest.query
                     # preload data from other table
                     # to speed up later serialization
-                    .filter(AuthRequest.active == True)
+                    .filter(AuthRequest.active == True)  # noqa
                     .options(
                         joinedload(AuthRequest.places),
                         joinedload(AuthRequest.motive),
@@ -422,10 +442,17 @@ def api_get_authorizations():
     return jsonify([obj.serialize() for obj in auth_requests])
 
 
+def parseJSDate(string):
+    """ Parse a JS date string and return a Python date() object or None"""
+    if not string:
+        return None
+    return datetime.strptime(string.split('T')[0], '%Y-%m-%d').date()
+
+
 @app.route('/api/v1/authorizations', methods=['POST'])
 @check_auth(2)
 def api_post_authorizations():
-    """ Create a new authorization.
+    """ Create a new authorization
 
         We should use some kind of automatic validation for this on the server
         side, but it's unlikely somebody will try to disable JS in the parc and
@@ -436,33 +463,65 @@ def api_post_authorizations():
         @check_auth still ensure permissions are respected, and SQLAlchemy
         will automatically sanitize SQL so we should be ok security wise.
     """
-    def parseDate(string):
-        if not string:
-            return None
-        values = string.split('T')[0].split('-')[:3]
-        return date(*map(int, values))
-
     places = []
-    for place in request.json['authorizationPlaces']:
+    for place in request.json.get('places', []):
         filter = RestrictedPlace.id == place['id']
         places.append(RestrictedPlace.query.filter(filter).one())
 
     auth_req = AuthRequest(
-        category=request.json['category'],
-        request_date=parseDate(request.json['date']),
-        motive_id=request.json['motive'],
-        author_prefix=request.json['authorPrefix'],
-        author_name=request.json['authorName'],
-        author_address=request.json['authorAddress'],
-        author_phone=request.json['authorPhone'],
-        group_vehicules_on_doc=request.json['groupVehicules'],
-        auth_start_date=parseDate(request.json['authorizationStartDate']),
-        auth_end_date=parseDate(request.json['authorizationEndDate']),
-        proof_documents=request.json['docs'],
-        rules=request.json['authorizationPrescriptions'],
-        vehicules=request.json['authorizationVehicules'],
-        places=places
+        category=request.json.get('category'),
+        request_date=parseJSDate(request.json.get('date')),
+        motive_id=request.json.get('motive'),
+        author_gender=request.json.get('authorGender'),
+        author_name=request.json.get('authorName'),
+        author_address=request.json.get('authorAddress'),
+        author_phone=request.json.get('authorPhone'),
+        group_vehicules_on_doc=request.json.get('groupVehiculesOnDoc'),
+        auth_start_date=parseJSDate(request.json.get('authStartDate')),
+        auth_end_date=parseJSDate(request.json.get('authEndDate')),
+        proof_documents=request.json.get('proofDocuments', []),
+        rules=request.json.get('rules'),
+        vehicules=request.json.get('vehicules', []),
+        places=places,
+        active=True,
+        valid=request.json.get('valid', False)
     )
+
+    db.session.add(auth_req)
+    db.session.commit()
+    return jsonify(auth_req.serialize())
+
+
+@app.route('/api/v1/authorizations/<auth_id>', methods=['PUT'])
+@check_auth(2)
+def api_put_authorizations(auth_id):
+    """ Update an existing AuthRequest
+
+        Same notes that for api_post_authorizations().
+    """
+    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+
+    places = []
+    for place in request.json.get('places', []):
+        filter = RestrictedPlace.id == place['id']
+        places.append(RestrictedPlace.query.filter(filter).one())
+
+    auth_req.category = request.json.get('category')
+    auth_req.request_date = parseJSDate(request.json.get('date'))
+    auth_req.motive_id = request.json.get('motive')
+    auth_req.author_gender = request.json.get('authorGender')
+    auth_req.author_name = request.json.get('authorName')
+    auth_req.author_address = request.json.get('authorAddress')
+    auth_req.author_phone = request.json.get('authorPhone')
+    auth_req.group_vehicules_on_doc = request.json.get('groupVehiculesOnDoc')
+    auth_req.auth_start_date = parseJSDate(request.json.get('authStartDate'))
+    auth_req.auth_end_date = parseJSDate(request.json.get('authEndDate'))
+    auth_req.proof_documents = request.json.get('proofDocuments', [])
+    auth_req.rules = request.json.get('rules')
+    auth_req.vehicules = request.json.get('vehicules', [])
+    auth_req.places = places
+    auth_req.active = True
+    auth_req.valid = request.json.get('valid', False)
 
     db.session.add(auth_req)
     db.session.commit()

@@ -186,7 +186,9 @@
           <a ng-href="/authorizations/{{ ::auth.id }}" target="_self">
             <span class="glyphicon glyphicon-pencil"></span>
           </a>
-          <a href="/"><span class="glyphicon glyphicon-duplicate"></span></a>
+          <a ng-href="/authorizations/{{ ::auth.id }}/clone" target="_self">
+            <span class="glyphicon glyphicon-duplicate"></span>
+          </a>
         </td>
 
         {% endraw %}
