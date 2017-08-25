@@ -192,7 +192,7 @@ class AuthRequest(db.Model, Timestamp):
     custom_template = deferred(db.Column(db.UnicodeText))
 
     active = db.Column(db.Boolean, default=True, nullable=False)
-    valid = db.Column(db.Boolean, default=False)
+    valid = db.Column(db.Boolean)
 
     def serialize(self):
 

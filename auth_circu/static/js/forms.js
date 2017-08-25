@@ -38,7 +38,6 @@ angular.module('auth_request', [
   // we do this only when editing an existing request
   if (window.PRELOAD_REQUEST){
     vm.request = window.PRELOAD_REQUEST;
-
     vm.request.motive = vm.request.motive && vm.request.motive.id;
 
     var parseDate = function (string){
@@ -120,19 +119,19 @@ angular.module('auth_request', [
     }
   };
 
-  vm.saveDraft = function(e) {
+  vm.saveDraft = function(e, request, savingStatus) {
     e.preventDefault();
-    vm.status = 'savingDraft';
+    vm.status = savingStatus || 'savingDraft';
+    request = request || vm.request;
     vm.requestForm.$setSubmitted();
-    if (!vm.request.id){
-      $http.post('/api/v1/authorizations', vm.request).then(function(response){
+    if (!request.id){
+      return $http.post('/api/v1/authorizations', request)
+                  .then(function(response){
         vm.requestForm.$setPristine();
         window.location = '/authorizations/' + response.data.id + "#footer";
-        vm.request = response.data.id;
-        vm.status = 'start';
       });
     } else {
-      $http.put('/api/v1/authorizations/' + vm.request.id, vm.request)
+      return $http.put('/api/v1/authorizations/' + request.id, request)
            .then(function(){
         vm.requestForm.$setPristine();
         vm.status = 'start';
@@ -154,10 +153,13 @@ angular.module('auth_request', [
               control.$setDirty();
           });
       });
+      document.forms['vm.requestForm'].querySelector('.ng-invalid').focus()
       return
     }
     var request = angular.extend({}, vm.request, {valid: true});
-    $http.post('/api/v1/authorizations', request);
+    vm.saveDraft(e, request, 'saving').then(function(){
+      vm.request.valid = true;
+    })
   };
 
 });

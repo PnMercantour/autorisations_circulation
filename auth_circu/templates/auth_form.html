@@ -212,7 +212,6 @@
 
               </span>
             </span>
-
             <span class="ng-cloak"
                   ng-if="::(doc.legacy_info || doc.expiration)">
               <label class="inline-left">Donnée importée</label>
@@ -370,7 +369,7 @@
 
   </fieldset>
 
-  <footer id="footer">
+  <footer id="footer" class="ng-cloak">
 
     <fieldset>
 
@@ -396,7 +395,7 @@
               Enregistrer le brouillon
           </span>
           <span ng-if="!vm.requestForm.$dirty">
-              Bouillon à jour
+              Rien à sauver en brouillon
           </span>
           <i ng-if="!vm.requestForm.$dirty"
              class="glyphicon glyphicon-ok"></i>
@@ -413,12 +412,21 @@
 
         <button ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
                 ng-click="vm.save($event)"
+                ng-disabled="!vm.requestForm.$dirty && vm.request.valid && vm.requestForm.$valid"
         >
-          Sauvegarder & générer les documents
+          <span ng-if="vm.requestForm.$dirty && vm.requestForm.$valid">
+               Sauvegarder & générer les documents
+          </span>
+          <span ng-if="!vm.requestForm.$dirty && vm.request.valid && vm.requestForm.$valid">
+              Documents à jour
+          </span>
+          <span ng-if="!vm.requestForm.$valid">
+              Montrer les erreurs
+          </span>
+          <i ng-if="!vm.requestForm.$dirty && vm.request.valid && vm.requestForm.$valid && vm.status !== 'saving'"
+             class="glyphicon glyphicon-ok"></i>
           <i ng-if="vm.status === 'saving'"
              class="glyphicon glyphicon-refresh glyphicon-spin"></i>
-          <i ng-if="vm.status === 'saved'"
-             class="glyphicon glyphicon-ok"></i>
         </button>
       </p>
       {% endraw %}

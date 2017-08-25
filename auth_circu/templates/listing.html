@@ -102,7 +102,7 @@
   </header>
 
 
- <div ng-show="vm.loading" class="loading">
+ <div ng-show="vm.loading" class="loading ng-cloak">
       <p ng-hide="vm.error">
         <img src="/static/img/spinner.gif" class="spinner" />
         Chargement des autorisations
@@ -115,7 +115,7 @@
   </div>
 
   <p ng-hide="vm.loading || vm.authorizations.filteredListing.length"
-     class="alert alert-success">
+     class="alert alert-successg ng-cloak">
     Aucune autorisation trouvée
   </p>
 
@@ -177,8 +177,13 @@
 
         <td class="document">
           <a ng-if="::auth.valid" href="#">2017-C0001 (TODO)</a>
-          <span ng-if="::!auth.valid" class="glyphicon glyphicon-warning-sign">
+          <span ng-if="::auth.valid === false"
+                class="glyphicon glyphicon-warning-sign">
             Brouillon
+          </span>
+          <span ng-if="::auth.valid === null"
+                class="glyphicon glyphicon-ban-circle">
+            Importé
           </span>
         </td>
 
@@ -200,7 +205,7 @@
   </table>
 
 
-  <footer class="listing-footer" ng-hide="vm.loading" class="ng-cloak">
+  <footer class="listing-footer ng-cloak" ng-hide="vm.loading">
     {% raw %}
     <p>
       <strong>Total</strong>:

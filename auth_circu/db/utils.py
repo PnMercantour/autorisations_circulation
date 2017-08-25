@@ -225,9 +225,17 @@ def populate_db(data_file, db=db):
                 base = start_date.year if start_date else '????'
                 number = auth_circu.db.models.generate_auth_number(base)
 
+            proof_docs = []
+            if row['JUSTIFICATIF'] or row['DATE JUSTIFICATIF']:
+                proof_docs = [{
+                        "legacy_info": row['JUSTIFICATIF'],
+                        "expiration": row['DATE JUSTIFICATIF'],
+                        "doc_type": None
+                }]
+
             # TODO: put a "note" ?
             auth_req = auth_circu.db.models.AuthRequest(
-                valid=False,
+                valid=None,
                 active=True,
                 number=number,
                 category='legacy',
@@ -238,11 +246,7 @@ def populate_db(data_file, db=db):
                 auth_start_date=start_date,
                 auth_end_date=end_date,
                 vehicules=list(vehicules),
-                proof_documents=[{
-                    "legacy_info": row['JUSTIFICATIF'],
-                    "expiration": row['DATE JUSTIFICATIF'],
-                    "doc_type": None
-                }]
+                proof_documents=proof_docs
             )
 
             auth_req.request_date = auth_req.auth_start_date or auth_req.auth_end_date or datetime.today()

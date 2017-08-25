@@ -148,6 +148,7 @@ def clone_auth(auth_id):
     auth_req.request_date = date.today()
     auth_req.id = uuid.uuid4()
     auth_req.valid = False
+    auth_req.number = None
     db.session.add(auth_req)
     db.session.commit()
     return redirect('/authorizations/' + str(auth_req.id), code=302)
@@ -239,10 +240,10 @@ def export_authorizations():
             dates += f'Fin: {end}'
 
         name = {
-            'Homme': 'M. ',
-            'Femme': 'Mme. ',
-            'N/A': ''
-        }[auth.get('author_prefix', 'N/A')]
+            'm': 'M. ',
+            'f': 'Mme. ',
+            'na': ''
+        }[auth.get('author_prefix', '')]
         name += auth.get('author_name') or ''
 
         rows.append([
@@ -470,7 +471,7 @@ def api_post_authorizations():
 
     auth_req = AuthRequest(
         category=request.json.get('category'),
-        request_date=parseJSDate(request.json.get('date')),
+        request_date=parseJSDate(request.json.get('requestDate')),
         motive_id=request.json.get('motive'),
         author_gender=request.json.get('authorGender'),
         author_name=request.json.get('authorName'),
@@ -507,7 +508,7 @@ def api_put_authorizations(auth_id):
         places.append(RestrictedPlace.query.filter(filter).one())
 
     auth_req.category = request.json.get('category')
-    auth_req.request_date = parseJSDate(request.json.get('date'))
+    auth_req.request_date = parseJSDate(request.json.get('requestDate'))
     auth_req.motive_id = request.json.get('motive')
     auth_req.author_gender = request.json.get('authorGender')
     auth_req.author_name = request.json.get('authorName')
