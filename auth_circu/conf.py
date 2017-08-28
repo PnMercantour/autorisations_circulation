@@ -11,6 +11,8 @@ from textwrap import dedent
 from flask import Flask
 
 LOCALE = ('fr_FR', 'UTF-8')
+STATIC_DIR = Path(__file__).absolute().parent / 'static'
+UPLOAD_DIR = STATIC_DIR / 'upload'
 
 try:
     locale.setlocale(locale.LC_ALL, LOCALE)
@@ -97,6 +99,8 @@ if need_config_file:
     # prevent pypnuserhub to hide useful exceptions, such a redirections
     # and debug informations
     app.config['TRAP_ALL_EXCEPTIONS'] = False
+    # Max size for upload is 64 Mo
+    app.config['MAX_CONTENT_LENGTH'] = 64 * 1024 * 1024
 
     app.config['AUTHCIRCU_USERSHUB_APP_ID'] = usershub_app_id
     app.config['BAD_LOGIN_STATUS_CODE'] = 400

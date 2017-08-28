@@ -264,7 +264,8 @@ def populate_db(data_file, db=db):
             for row in DictReader(data):
                 place = auth_circu.db.models.RestrictedPlace(
                     name=row['name'].strip(),
-                    category=row['category'].strip()
+                    category=row['category'].strip(),
+                    active=True,
                 )
                 db.session.add(place)
                 yield row
@@ -274,8 +275,22 @@ def populate_db(data_file, db=db):
             for row in reader(data):
                 motive = auth_circu.db.models.RequestMotive(
                     name=row[0].strip(),
+                    active=True,
                 )
                 db.session.add(motive)
+                yield row
+
+        # add base auth document templates
+        with text_resource_stream('templates.csv', 'auth_circu.db') as data:
+            for row in DictReader(data):
+                path = auth_circu.conf.UPLOAD_DIR / row['filename'].strip()
+                template = auth_circu.db.models.AuthDocTemplate(
+                    name=row['name'].strip(),
+                    default_for=row['for'].strip(),
+                    path=str(path),
+                    active=True,
+                )
+                db.session.add(template)
                 yield row
 
         db.session.commit()

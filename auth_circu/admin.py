@@ -1,19 +1,16 @@
 
-from pathlib import Path
-
-
 from pypnusershub.db.models import db
 from pypnusershub.routes import check_auth
 
 from flask_admin.contrib.sqla import ModelView, filters
 from flask_admin.contrib.sqla.form import AdminModelConverter
 from flask_admin import Admin
-from flask_admin.contrib.fileadmin import FileAdmin
 from flask_admin.menu import MenuLink
 from flask_admin import form
 from flask_admin.model.form import converts
 
-from .db.models import RequestMotive, RestrictedPlace
+from .db.models import RequestMotive, RestrictedPlace, AuthDocTemplate
+from .conf import UPLOAD_DIR
 
 
 class SQLAUtilsModelConverter(AdminModelConverter):
@@ -50,6 +47,52 @@ class AuthenticatedModelView(ModelView):
         return super()._handle_view(name, **kwargs)
 
 
+class RequestMotiveView(AuthenticatedModelView):
+    column_exclude_list = form_excluded_columns = (
+        'created',
+        'updated',
+        'requests'
+    )
+    column_labels = form_labels = {
+        'name': 'Nom',
+        'active': 'Actif',
+    }
+
+
+class AuthDocTemplateView(AuthenticatedModelView):
+    form_excluded_columns = ('created', 'updated')
+    column_exclude_list = form_excluded_columns + ('path',)
+    form_overrides = {
+        'path': form.FileUploadField
+    }
+    form_args = {
+        'path': {
+            'base_path': UPLOAD_DIR,
+            'allow_overwrite': False
+        },
+    }
+    form_widget_args = {
+        'path': {
+            'readonly': True
+        },
+    }
+    column_searchable_list = ['name']
+    column_labels = {
+        'name': 'Nom',
+        'active': 'Actif',
+        'path': 'Fichier',
+        'default_for': 'Template par défaut de'
+    }
+    form_columns = ['name', 'path', 'active', 'default_for']
+
+    def format_default_for(v, c, m, p):
+        return m.default_for.value if m.default_for else ''
+
+    column_formatters = {
+        "default_for": format_default_for
+    }
+
+
 class RestrictedPlaceView(AuthenticatedModelView):
     column_searchable_list = ['name']
     column_default_sort = ('category', True)
@@ -65,7 +108,8 @@ class RestrictedPlaceView(AuthenticatedModelView):
     )
     column_labels = {
         'name': 'Nom',
-        'category': 'Categorie'
+        'category': 'Categorie',
+        'active': 'Actif'
     }
     form_columns = ['name', 'category', 'active']
 
@@ -85,9 +129,8 @@ def setup_admin(app):
         )
     )
 
-    admin.add_view(AuthenticatedModelView(RequestMotive, db.session))
+    admin.add_view(RequestMotiveView(RequestMotive, db.session))
+    admin.add_view(AuthDocTemplateView(AuthDocTemplate, db.session))
     admin.add_link(
         MenuLink(name='Retour aux autorisations', url='/authorizations')
     )
-    path = Path(__file__).parent.parent / 'auth_templates'
-    admin.add_view(FileAdmin(path, '/authtemplates/', name='Modèles'))

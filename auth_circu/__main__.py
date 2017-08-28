@@ -9,7 +9,7 @@ from pathlib import Path
 from IPython import embed
 
 from auth_circu.db.models import ( # noqa
-    RequestMotive, RestrictedPlace, LetterTemplate,
+    RequestMotive, RestrictedPlace, AuthDocTemplate,
     AuthRequest, db
 )
 from auth_circu.db.utils import (

@@ -2,7 +2,8 @@
 from uuid import uuid4
 from datetime import date
 
-from sqlalchemy.orm import load_only, deferred, relationship
+from sqlalchemy.orm import load_only, relationship
+from sqlalchemy.event import listens_for
 
 from sqlalchemy_utils import (
     ChoiceType,
@@ -42,6 +43,9 @@ class RequestMotive(db.Model, Timestamp):
     def __repr__(self):
         return f"<RequestMotive {self.name!r}>"
 
+    def __unicode__(self):
+        return self.name
+
 
 class RestrictedPlace(db.Model, Timestamp):
 
@@ -73,6 +77,9 @@ class RestrictedPlace(db.Model, Timestamp):
     def __repr__(self):
         return f"<RestrictedPlace {self.name!r}>"
 
+    def __unicode__(self):
+        return self.name
+
 
 request_to_place = db.Table(
     't_request_to_place',
@@ -88,27 +95,55 @@ request_to_place = db.Table(
 )
 
 
-class LetterTemplate(db.Model, Timestamp):
+class AuthDocTemplate(db.Model, Timestamp):
 
-    __tablename__ = 't_letter_template'
+    __tablename__ = 't_auth_doc_template'
     __table_args__ = {'schema': 'auth_circu'}
 
-    CATEGORIES = [
-        ('decision', 'Decision'),
-        ('arrete', 'Arrêté')
+    DEFAULT_FORMATS = [
+        ('address_a4', 'Adresse format A4'),
+        ('address_envelope', 'Adresse format enveloppe'),
+        ('letter_salese', 'Lettre pour autorisation Salèse'),
+        ('letter_agropasto', 'Lettre pour autorisation Agro-pastorale'),
+        ('letter_other', 'Lettre pour autres autorisations'),
+        ('', 'Aucun'),
+        # ('card_salese', 'Carton pour autorisation Salèse'),
+        # ('card_other', 'Carton pour autres autorisations'),
     ]
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
-    category = db.Column(
-        ChoiceType(CATEGORIES),
-        nullable=False,
-        default="decision"
-    )
-    content = db.Column(db.UnicodeText)
+    name = db.Column(db.Unicode(64), nullable=False)
+    path = db.Column(db.Unicode(256), nullable=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
+    default_for = db.Column(
+        ChoiceType(DEFAULT_FORMATS),
+        default='',
+    )
 
     def __repr__(self):
-        return f"<LetterTemplate id='{self.id}'>"
+        return f"<AuthDocTemplate id='{self.id}'>"
+
+    def __unicode__(self):
+        return self.name
+
+
+@listens_for(AuthDocTemplate, 'after_insert')
+@listens_for(AuthDocTemplate, 'after_update')
+def receive_after_insert(mapper, connection, target):
+    """ Make sure the target stays unique """
+    if target.default_for:
+        filter = (
+            (AuthDocTemplate.default_for == target.default_for) &
+            (AuthDocTemplate.id != target.id)
+        )
+
+        AuthDocTemplate.query.filter(filter).update({'default_for': None})
+
+        # Forbid the deactivation of a template that is a default template
+        if not target.active:
+            (AuthDocTemplate.query
+                            .filter(AuthDocTemplate.id == target.id)
+                            .update({'active': True}))
 
 
 def generate_auth_number(year=None, baseline=1):
@@ -117,10 +152,10 @@ def generate_auth_number(year=None, baseline=1):
 
     # get the request with the highest number for this year
     last_req = (AuthRequest.query
-                            .filter(AuthRequest.number.like(f'{year}%'))
-                            .order_by(AuthRequest.number.desc())
-                            .options(load_only("number"))
-                            .first())
+                           .filter(AuthRequest.number.like(f'{year}%'))
+                           .order_by(AuthRequest.number.desc())
+                           .options(load_only("number"))
+                           .first())
 
     # extract it if it exists or start the counter at 1
     if last_req:
@@ -187,9 +222,8 @@ class AuthRequest(db.Model, Timestamp):
                                        nullable=False)
 
     # TODO: provide boostrap templates and places, and add default value here
-    template_id = db.Column(db.ForeignKey('auth_circu.t_letter_template.id'))
-    template = relationship("LetterTemplate", backref="requests")
-    custom_template = deferred(db.Column(db.UnicodeText))
+    template_id = db.Column(db.ForeignKey('auth_circu.t_auth_doc_template.id'))
+    template = relationship("AuthDocTemplate", backref="requests")
 
     active = db.Column(db.Boolean, default=True, nullable=False)
     valid = db.Column(db.Boolean)
@@ -235,3 +269,7 @@ class AuthRequest(db.Model, Timestamp):
 
     def __repr__(self):
         return f"<AuthRequest id='{self.id}'>"
+
+    def __unicode__(self):
+        return self.number
+
