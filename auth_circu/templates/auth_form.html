@@ -220,7 +220,6 @@
 
           </div>
 
-
         </div>
 
         <div class="row addproofdoc">
@@ -412,12 +411,12 @@
 
         <button ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
                 ng-click="vm.save($event)"
-                ng-disabled="!vm.requestForm.$dirty && vm.request.valid && vm.requestForm.$valid"
+                ng-disabled="!vm.requestForm.$dirty && vm.requestForm.$valid"
         >
           <span ng-if="vm.requestForm.$dirty && vm.requestForm.$valid">
                Sauvegarder & générer les documents
           </span>
-          <span ng-if="!vm.requestForm.$dirty && vm.request.valid && vm.requestForm.$valid">
+          <span ng-if="!vm.requestForm.$dirty && vm.requestForm.$valid">
               Documents à jour
           </span>
           <span ng-if="!vm.requestForm.$valid">

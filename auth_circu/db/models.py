@@ -228,6 +228,14 @@ class AuthRequest(db.Model, Timestamp):
     active = db.Column(db.Boolean, default=True, nullable=False)
     valid = db.Column(db.Boolean)
 
+    @property
+    def author_prefix(self):
+        if self.author_gender == "m":
+            return "M."
+        if self.author_gender == "f":
+            return "Mme."
+        return ""
+
     def serialize(self):
 
         if self.request_date:

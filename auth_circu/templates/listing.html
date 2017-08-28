@@ -176,7 +176,11 @@
         <td>{{ ::auth.vehicules|join:', '}}</td>
 
         <td class="document">
-          <a ng-if="::auth.valid" href="#">2017-C0001 (TODO)</a>
+          <a ng-if="::auth.valid"
+             ng-href="/exports/authorizations/{{auth.id}}/address_a4"
+             target="_self">
+             Adresse A4
+          </a>
           <span ng-if="::auth.valid === false"
                 class="glyphicon glyphicon-warning-sign">
             Brouillon

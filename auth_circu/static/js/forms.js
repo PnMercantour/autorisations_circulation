@@ -124,6 +124,7 @@ angular.module('auth_request', [
     vm.status = savingStatus || 'savingDraft';
     request = request || vm.request;
     vm.requestForm.$setSubmitted();
+
     if (!request.id){
       return $http.post('/api/v1/authorizations', request)
                   .then(function(response){
