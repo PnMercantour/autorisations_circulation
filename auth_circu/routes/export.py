@@ -12,7 +12,7 @@ from flask import (
     send_file,
 )
 
-from py3o.template import Template
+from secretary import Renderer
 
 from werkzeug.exceptions import BadRequest, abort
 
@@ -21,6 +21,9 @@ from pypnusershub.routes import check_auth
 from ..conf import app
 from ..db.models import AuthDocTemplate, AuthRequest
 from ..db.utils import get_object_or_abort
+
+
+odt_renderer = Renderer()
 
 
 @app.route('/exports/authorizations', methods=['POST'])
@@ -79,32 +82,32 @@ def export_authorizations():
         )
 
 
-@app.route('/exports/authorizations/<auth_id>/address_a4')
+@app.route('/exports/authorizations/<auth_id>/address')
 @check_auth(2)
 def address_a4(auth_id):
     auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
     if not auth_req.valid:
         return abort(400, "Can't get doc for a draft authorization.")
+    paper_format = request.args.get('format', 'address_a4')
 
     template = (AuthDocTemplate.query
                                .filter(
-                                   AuthDocTemplate.default_for == 'address_a4'
+                                   AuthDocTemplate.default_for == paper_format
                                 )
                                .one())
 
-    with tempfile.NamedTemporaryFile() as f:
+    name = auth_req.author_name
+    prefix = auth_req.author_prefix + " " if auth_req.author_prefix else ""
+    data = odt_renderer.render(
+        template.path,
+        author_prefix=prefix,
+        author_name=name,
+        author_address=auth_req.author_address
+    )
 
-        name = auth_req.author_name
-        t = Template(template.path, f.name)
-        t.render({
-            'author_gender': auth_req.author_prefix,
-            'author_name': name,
-            'author_address': auth_req.author_address.split('\n'),
-        })
-
-        filename = f'{name} - {datetime.now():%d/%m/%Y}.addresse_a4.odt'
-        return send_file(
-            BytesIO(f.read()),
-            attachment_filename=filename,
-            as_attachment=True
-        )
+    filename = f'{name} - {datetime.now():%d/%m/%Y}.addresse.odt'
+    return send_file(
+        BytesIO(data),
+        attachment_filename=filename,
+        as_attachment=True
+    )
