@@ -9,7 +9,10 @@ from flask_admin.menu import MenuLink
 from flask_admin import form
 from flask_admin.model.form import converts
 
-from .db.models import RequestMotive, RestrictedPlace, AuthDocTemplate
+from .db.models import (
+    RequestMotive, RestrictedPlace, AuthDocTemplate, LegalContact
+)
+
 from .conf import UPLOAD_DIR
 
 
@@ -56,6 +59,17 @@ class RequestMotiveView(AuthenticatedModelView):
     column_labels = form_labels = {
         'name': 'Nom',
         'active': 'Actif',
+    }
+
+
+class LegalContactView(AuthenticatedModelView):
+    column_exclude_list = form_excluded_columns = (
+        'created',
+        'updated',
+    )
+    column_labels = form_labels = {
+        'user': 'Utilisateur',
+        'content': 'Contenu'
     }
 
 
@@ -131,6 +145,7 @@ def setup_admin(app):
 
     admin.add_view(RequestMotiveView(RequestMotive, db.session))
     admin.add_view(AuthDocTemplateView(AuthDocTemplate, db.session))
+    admin.add_view(LegalContactView(LegalContact, db.session))
     admin.add_link(
         MenuLink(name='Retour aux autorisations', url='/authorizations')
     )

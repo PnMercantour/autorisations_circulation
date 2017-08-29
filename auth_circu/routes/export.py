@@ -1,5 +1,3 @@
-import tempfile
-
 from io import BytesIO
 from datetime import datetime
 
@@ -7,10 +5,7 @@ import flask_excel
 
 import weasyprint
 
-from flask import (
-    request,
-    send_file,
-)
+from flask import request, send_file, g
 
 from secretary import Renderer
 
@@ -106,6 +101,56 @@ def address_a4(auth_id):
     )
 
     filename = f'{name} - {datetime.now():%d/%m/%Y}.addresse.odt'
+    return send_file(
+        BytesIO(data),
+        attachment_filename=filename,
+        as_attachment=True
+    )
+
+
+@app.route('/exports/authorizations/<auth_id>')
+@check_auth(2)
+def generate_auth_doc(auth_id):
+    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+    if not auth_req.valid:
+        return abort(400, "Can't get doc for a draft authorization.")
+
+    legal_contact = g.user.role.legal_contact
+    if not legal_contact or not legal_contact.content:
+        return abort(400, "Your account doesn't have a legal contact.")
+
+    cover_format = request.args.get('cover_format', 'a4')
+    template_filter = AuthDocTemplate.default_for == "letter_other"
+    if auth_req.category == "salese":
+        template_filter = AuthDocTemplate.default_for == "letter_salese"
+    if auth_req.category == "agropasto":
+        template_filter = AuthDocTemplate.default_for == "letter_agropasto"
+
+    template = get_object_or_abort(AuthDocTemplate, template_filter)
+
+    prefix = auth_req.author_prefix
+    if prefix:
+        prefix += " "
+
+    places = list(auth_req.places)
+    vehicules = list(auth_req.vehicules)
+    data = odt_renderer.render(
+        template.path,
+        author_prefix=prefix,
+        auth_req=auth_req,
+        request_date=auth_req.request_date.strftime('%d/%m/%Y'),
+        feminin=auth_req.author_gender == "f",
+        auth_start_date=auth_req.auth_start_date.strftime('%d/%m/%Y'),
+        auth_end_date=auth_req.auth_end_date.strftime('%d/%m/%Y'),
+        places=places,
+        places_count=len(places),
+        vehicules=vehicules,
+        vehicules_count=len(vehicules),
+        doc_creation_date=datetime.now().strftime("%d %B %Y"),
+        legal_contact=legal_contact.content
+    )
+
+    filename = f'{auth_req.author_name} - {datetime.now():%d/%m/%Y}.odt'
     return send_file(
         BytesIO(data),
         attachment_filename=filename,

@@ -2,7 +2,7 @@
 from uuid import uuid4
 from datetime import date
 
-from sqlalchemy.orm import load_only, relationship
+from sqlalchemy.orm import load_only, relationship, backref
 from sqlalchemy.event import listens_for
 
 from sqlalchemy_utils import (
@@ -22,6 +22,20 @@ from pypnusershub.db.models import db
 def in_one_year():
     now = date.today()
     return now.replace(year=now.year + 1)
+
+
+class LegalContact(db.Model, Timestamp):
+
+    __tablename__ = 't_legal_contact'
+    __table_args__ = {'schema': 'auth_circu'}
+
+    id = db.Column(UUIDType, default=uuid4, primary_key=True)
+    content = db.Column(db.Unicode(256), nullable=False)
+    user_id = db.Column(db.ForeignKey('utilisateurs.t_roles.id_role'))
+    user = relationship(
+        "User",
+        backref=backref("legal_contact", uselist=False)
+    )
 
 
 class RequestMotive(db.Model, Timestamp):
