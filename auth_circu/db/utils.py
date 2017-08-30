@@ -163,7 +163,7 @@ def populate_db(data_file, db=db):
             row = {key: value.strip() for key, value in row.items()}
 
             name = "{NOM} {PRENOM}".format_map(row).strip()
-            address = "{ADRESSE} {CODE POSTAL} {COMMUNE}".format_map(row)\
+            address = "{ADRESSE}\n{CODE POSTAL} {COMMUNE}".format_map(row)\
                                                          .strip()
 
             # Fetch all authorised vehicules.

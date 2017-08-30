@@ -368,6 +368,7 @@
 
   </fieldset>
 
+  {% raw %}
   <footer id="footer" class="ng-cloak">
 
     <fieldset>
@@ -407,31 +408,39 @@
           Ceci n'est plus un brouillon
         </button>
 
-        {% raw %}
-
         <button ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
                 ng-click="vm.save($event)"
-                ng-disabled="!vm.requestForm.$dirty && vm.requestForm.$valid"
+                ng-if="vm.requestForm.$dirty || vm.status === 'saving'"
         >
-          <span ng-if="vm.requestForm.$dirty && vm.requestForm.$valid">
+          <span ng-if="vm.requestForm.$valid">
                Sauvegarder & générer les documents
           </span>
-          <span ng-if="!vm.requestForm.$dirty && vm.requestForm.$valid">
-              Documents à jour
-          </span>
+
           <span ng-if="!vm.requestForm.$valid">
               Montrer les erreurs
           </span>
-          <i ng-if="!vm.requestForm.$dirty && vm.request.valid && vm.requestForm.$valid && vm.status !== 'saving'"
-             class="glyphicon glyphicon-ok"></i>
           <i ng-if="vm.status === 'saving'"
              class="glyphicon glyphicon-refresh glyphicon-spin"></i>
         </button>
+
+        <a ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
+                ng-if="!vm.requestForm.$dirty && vm.requestForm.$valid"
+                ng-href="/exports/authorizations/{{vm.request.id}}"
+                target="self_"
+        >
+          Télécharger les documents
+          <i ng-if="!vm.requestForm.$dirty && vm.request.valid && vm.status !== 'saving'"
+             class="glyphicon glyphicon-download-alt"></i>
+
+        </a>
+
       </p>
-      {% endraw %}
+
     </fieldset>
 
+
   </footer>
+  {% endraw %}
 
 </form>
 

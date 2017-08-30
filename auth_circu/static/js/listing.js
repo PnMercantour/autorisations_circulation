@@ -1,3 +1,5 @@
+/*jshint esversion: 6 */
+
 (function(){
 'use strict';
 
@@ -10,7 +12,7 @@ angular.module('auth_circu')
   var normalize = $filter('normalize');
 
   service.listing = [];
-  service.filteredListing = []
+  service.filteredListing = [];
 
   service.loadAuthorizations = function(year, month, status){
     return $http.get(
@@ -25,13 +27,13 @@ angular.module('auth_circu')
     ).then(function(response) {
         service.listing = response.data;
     });
-  }
+  };
 
   service.filterAuthorizations = function(filters){
 
     if (!filters.length){
       service.filteredListing = service.listing;
-      return
+      return;
     }
 
     service.filteredListing =  angularFilter(
@@ -61,7 +63,7 @@ angular.module('auth_circu')
           }
 
           // check the vehicule numberplate
-          for (var y = 0, l = authRequest.vehicules.length; y < l; y++) {
+          for (y = 0, l = authRequest.vehicules.length; y < l; y++) {
             var numberplate = normalize(authRequest.vehicules[y]);
             if (numberplate.indexOf(filter) !== -1){
               return true;
@@ -73,7 +75,7 @@ angular.module('auth_circu')
       }
 
     );
-  }
+  };
 })
 
 .controller('AuthListingCtrl', function(
@@ -103,7 +105,6 @@ angular.module('auth_circu')
   vm.error = '';
   vm.search = '';
 
-
   vm.savePagination = function(){
     // Update the pagination values in the URL and local storage so that
     // we get them back if we come back later
@@ -115,7 +116,7 @@ angular.module('auth_circu')
       $location.search(name, value);
     }
     storage.set('pagination', vm.pagination);
-  }
+  };
 
   vm.refreshDateFilter = function(){
 
@@ -133,13 +134,13 @@ angular.module('auth_circu')
       vm.loading = false;
     }, function(error){
       if (error.status === -1){
-        vm.error = "Impossible de charger la liste des autorisations. Vérifiez que votre connexion, puis rechargez cette page."
+        vm.error = "Impossible de charger la liste des autorisations. Vérifiez que votre connexion, puis rechargez cette page.";
       } else {
         vm.error = "Erreur en chargant la liste des autorisations. Rechargez la page. Si ce message ne disparait pas, contactez un administrateur.";
-        console.error('Error loading the auth listing:', error.data)
+        console.error('Error loading the auth listing:', error.data);
       }
     });
-  }
+  };
 
   vm.refreshSearchFilter = function(){
 
@@ -154,7 +155,7 @@ angular.module('auth_circu')
     }
 
     vm.authorizations.filterAuthorizations(filters);
-  }
+  };
 
 
   // We use $timeout here to space digests and ensure we see the loading
@@ -164,23 +165,23 @@ angular.module('auth_circu')
   // to filter the listing
   vm.onSubmitSearch = function(e){
     e.preventDefault();
-    vm.loading = true
+    vm.loading = true;
     $timeout(function(){
       vm.refreshSearchFilter();
       vm.loading = false;
-    })
-  }
+    });
+  };
 
   // triggered when we clear the search input by clicking on the cross button
   // or typing "escape"
   vm.onClearSearch = function(){
-    vm.loading = true
+    vm.loading = true;
     $timeout(function(){
       vm.search = '';
       vm.refreshSearchFilter();
       vm.loading = false;
-    })
-  }
+    });
+  };
 
   // triggered every time we change the searched team. Update the listing
   // when empty
@@ -279,8 +280,27 @@ angular.module('auth_circu')
     }).finally();
   }
 
+
+  vm.onDownloadAuthDocs = function(){
+    // Display a modal windows with a choice a envelop formats
+    var canceler = $q.defer();
+
+    // show modal with spinner
+    var modalWindow = $uibModal.open({
+      templateUrl: 'auth-doc-modal.html',
+      controllerAs: 'vm',
+      controller: function ($uibModalInstance) {
+        this.cancel = function () {
+          // dismiss the windows if the cancel button is clicked
+          canceler.resolve();
+          $uibModalInstance.dismiss('cancel');
+        };
+      }
+    });
+  };
+
   // populate de listing
   vm.refreshDateFilter();
-})
+});
 
 })();

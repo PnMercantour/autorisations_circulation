@@ -119,7 +119,6 @@ def generate_auth_doc(auth_id):
     if not legal_contact or not legal_contact.content:
         return abort(400, "Your account doesn't have a legal contact.")
 
-    cover_format = request.args.get('cover_format', 'a4')
     template_filter = AuthDocTemplate.default_for == "letter_other"
     if auth_req.category == "salese":
         template_filter = AuthDocTemplate.default_for == "letter_salese"
