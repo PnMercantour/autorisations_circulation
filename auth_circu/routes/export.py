@@ -5,7 +5,7 @@ import flask_excel
 
 import weasyprint
 
-from flask import request, send_file, g
+from flask import request, send_file, g, make_response, jsonify
 
 from secretary import Renderer
 
@@ -52,7 +52,7 @@ def export_authorizations():
             'm': 'M. ',
             'f': 'Mme. ',
             'na': ''
-        }[auth.get('author_prefix', '')]
+        }[auth.get('author_gender', '')]
         name += auth.get('author_name') or ''
 
         rows.append([
@@ -77,47 +77,24 @@ def export_authorizations():
         )
 
 
-@app.route('/exports/authorizations/<auth_id>/address')
-@check_auth(2)
-def address_a4(auth_id):
-    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
-    if not auth_req.valid:
-        return abort(400, "Can't get doc for a draft authorization.")
-    paper_format = request.args.get('format', 'address_a4')
-
-    template = (AuthDocTemplate.query
-                               .filter(
-                                   AuthDocTemplate.default_for == paper_format
-                                )
-                               .one())
-
-    name = auth_req.author_name
-    prefix = auth_req.author_prefix + " " if auth_req.author_prefix else ""
-    data = odt_renderer.render(
-        template.path,
-        author_prefix=prefix,
-        author_name=name,
-        author_address=auth_req.author_address
-    )
-
-    filename = f'{name} - {datetime.now():%d/%m/%Y}.addresse.odt'
-    return send_file(
-        BytesIO(data),
-        attachment_filename=filename,
-        as_attachment=True
-    )
-
-
-@app.route('/exports/authorizations/<auth_id>')
+@app.route('/exports/authorizations/<auth_id>', methods=['POST', 'GET'])
 @check_auth(2)
 def generate_auth_doc(auth_id):
     auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
     if not auth_req.valid:
-        return abort(400, "Can't get doc for a draft authorization.")
+        msg = jsonify(message="Les brouillons ne peuvent être imprimés")
+        return abort(make_response(msg, 400))
 
     legal_contact = g.user.role.legal_contact
     if not legal_contact or not legal_contact.content:
-        return abort(400, "Your account doesn't have a legal contact.")
+        msg = jsonify(
+            message=(
+                "Votre compte n'a pas de coordonnées de contact associées "
+                "et ne peut donc imprimer un document. Veuilez demander à un "
+                "administrateur de vous les rajouter."
+            )
+        )
+        return abort(make_response(msg, 400))
 
     template_filter = AuthDocTemplate.default_for == "letter_other"
     if auth_req.category == "salese":
@@ -155,3 +132,4 @@ def generate_auth_doc(auth_id):
         attachment_filename=filename,
         as_attachment=True
     )
+

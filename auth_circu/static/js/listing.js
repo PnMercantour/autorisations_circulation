@@ -187,13 +187,13 @@ angular.module('auth_circu')
   // when empty
   vm.onChange = function(){
     if (!vm.search){
-      vm.loading = true
+      vm.loading = true;
       $timeout(function(){
         vm.refreshSearchFilter();
         vm.loading = false;
-      })
+      });
     }
-  }
+  };
 
   vm.onDownloadODS = function(){
 
@@ -210,7 +210,7 @@ angular.module('auth_circu')
       controller: function ($uibModalInstance) {
         this.cancel = function () {
           // dismiss the windows if the cancel button is clicked
-          canceler.resolve()
+          canceler.resolve();
           $uibModalInstance.dismiss('cancel');
         };
       }
@@ -226,7 +226,7 @@ angular.module('auth_circu')
         {responseType: 'arraybuffer', timeout: canceler.promise}
     ).then(function(response) {
         // document is generated, close the modal and prompt for download
-        modalWindow.close()
+        modalWindow.close();
         var blob = new Blob(
             [response.data],
             {type: "application/vnd.oasis.opendocument.spreadsheet;charset=charset=utf-8"}
@@ -240,7 +240,7 @@ angular.module('auth_circu')
       }
     });
 
-  }
+  };
 
   vm.onDownloadPDF = function(){
 
@@ -251,6 +251,7 @@ angular.module('auth_circu')
       templateUrl: 'loading-modal.html',
       controllerAs: 'vm',
       controller: function ($uibModalInstance) {
+        this.status = 'loading';
         this.cancel = function () {
           // dismiss the windows if the cancel button is clicked
           $uibModalInstance.dismiss('cancel');
@@ -266,7 +267,7 @@ angular.module('auth_circu')
         {authorizations: vm.authorizations.filteredListing},
         {responseType: 'arraybuffer', timeout: canceler.promise}
     ).then(function(response) {
-        modalWindow.close()
+        modalWindow.close();
         var blob = new Blob(
             [response.data],
             {type: "application/pdf"}
@@ -278,25 +279,50 @@ angular.module('auth_circu')
         console.error("Error while exporting to PDF", error);
       }
     }).finally();
-  }
+  };
 
-
-  vm.onDownloadAuthDocs = function(){
-    // Display a modal windows with a choice a envelop formats
+  vm.onDownloadAuthDocs = function(e, auth){
+    e.preventDefault();
+    // Same workflows as for onDownloadODS
     var canceler = $q.defer();
-
-    // show modal with spinner
+    var scope = {};
     var modalWindow = $uibModal.open({
-      templateUrl: 'auth-doc-modal.html',
+      templateUrl: 'loading-modal.html',
       controllerAs: 'vm',
       controller: function ($uibModalInstance) {
+        this.scope = scope;
+        this.scope.status = 'loading';
+        this.scope.error = '';
         this.cancel = function () {
           // dismiss the windows if the cancel button is clicked
-          canceler.resolve();
           $uibModalInstance.dismiss('cancel');
         };
       }
     });
+
+    // if cancel button has been clicked, we abort the request
+    modalWindow.result.then(function(){}, canceler.resolve);
+
+    return $http.post(
+        "/exports/authorizations/" + auth.id,
+        {},
+        {responseType: 'arraybuffer', timeout: canceler.promise}
+    ).then(function(response) {
+        modalWindow.close();
+        var blob = new Blob(
+            [response.data],
+            {type: "application/vnd.oasis.opendocument.text;charset=charset=utf-8"}
+        );
+        var date = $filter('date')(new Date(), "yyyy-MM-dd");
+        saveAs(blob, `${auth.author_name}_${date}.odt`);
+    }, function(error){
+      scope.status = "error";
+      if (error.status === -1){ // ignore error from the user aborting the request
+        return;
+      }
+      var str = String.fromCharCode.apply(null, new Uint8Array(error.data));
+      scope.error = JSON.parse(str).message;
+    }).finally();
   };
 
   // populate de listing

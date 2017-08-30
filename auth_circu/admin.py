@@ -71,6 +71,9 @@ class LegalContactView(AuthenticatedModelView):
         'user': 'Utilisateur',
         'content': 'Contenu'
     }
+    column_formatters = {
+        "user": lambda v, c, m, p: m.user.identifiant if m.user else ''
+    }
 
 
 class AuthDocTemplateView(AuthenticatedModelView):

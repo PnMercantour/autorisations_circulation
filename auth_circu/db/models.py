@@ -294,4 +294,3 @@ class AuthRequest(db.Model, Timestamp):
 
     def __unicode__(self):
         return self.number
-

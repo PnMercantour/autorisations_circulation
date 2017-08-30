@@ -32,8 +32,7 @@ angular.module('auth_request', [
     groupVehiculesOnDoc: false,
     category: $location.search().category || 'other',
     valid: false,
-    rules: undefined
-  }
+  };
 
   // we do this only when editing an existing request
   if (window.PRELOAD_REQUEST){
@@ -42,12 +41,12 @@ angular.module('auth_request', [
 
     var parseDate = function (string){
       if (!string){
-        return null
+        return null;
       }
 
       string = string.split('/');
       return new Date(string[2], string[1], string[0]);
-    }
+    };
 
     vm.request.requestDate = parseDate(vm.request.requestDate);
     vm.request.authStartDate = parseDate(vm.request.authStartDate);
@@ -58,7 +57,7 @@ angular.module('auth_request', [
   // place
   if (vm.request.category == "salese"){
     var piste = vm.places.filter(function(place){
-      return place.name == "Piste de Salèse"
+      return place.name == "Piste de Salèse";
     })[0];
 
     // add saleze as a default place if the request is a new one
@@ -79,26 +78,26 @@ angular.module('auth_request', [
       date: new Date(),
     });
     vm.requestForm.$setDirty();
-  }
+  };
 
   vm.removeDoc = function(e, index){
     e.preventDefault();
     vm.request.proofDocuments.splice(index, 1);
     vm.requestForm.$setDirty();
-  }
+  };
 
   vm.removePlace = function(e, index){
     e.preventDefault();
     if (vm.request.category === "salese" &&
         vm.request.places[index].name === "Piste de Salèse"){
-        return
+        return;
     }
     vm.request.places.splice(index, 1);
     if (!vm.request.length){
       vm.requestForm.places.$setValidity('required', true);
     }
     vm.requestForm.$setDirty();
-  }
+  };
 
   vm.addPlace = function(newPlace){
     var isDuplicate = vm.request.places.some(function(place){
@@ -109,7 +108,7 @@ angular.module('auth_request', [
       vm.newPlace = undefined;
       vm.requestForm.places.$setValidity('required', true);
     }
-  }
+  };
 
   vm.deleteDraft = function(e) {
     e.preventDefault();
@@ -154,13 +153,13 @@ angular.module('auth_request', [
               control.$setDirty();
           });
       });
-      document.forms['vm.requestForm'].querySelector('.ng-invalid').focus()
-      return
+      document.forms['vm.requestForm'].querySelector('.ng-invalid').focus();
+      return;
     }
     var request = angular.extend({}, vm.request, {valid: true});
     vm.saveDraft(e, request, 'saving').then(function(){
       vm.request.valid = true;
-    })
+    });
   };
 
 });
