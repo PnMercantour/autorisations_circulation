@@ -96,13 +96,15 @@ def generate_auth_doc(auth_id):
         )
         return abort(make_response(msg, 400))
 
-    template_filter = AuthDocTemplate.default_for == "letter_other"
-    if auth_req.category == "salese":
-        template_filter = AuthDocTemplate.default_for == "letter_salese"
-    if auth_req.category == "agropasto":
-        template_filter = AuthDocTemplate.default_for == "letter_agropasto"
+    template = auth_req.template
+    if not template:
+        template_filter = AuthDocTemplate.default_for == "letter_other"
+        if auth_req.category == "salese":
+            template_filter = AuthDocTemplate.default_for == "letter_salese"
+        if auth_req.category == "agropasto":
+            template_filter = AuthDocTemplate.default_for == "letter_agropasto"
 
-    template = get_object_or_abort(AuthDocTemplate, template_filter)
+        template = get_object_or_abort(AuthDocTemplate, template_filter)
 
     prefix = auth_req.author_prefix
     if prefix:

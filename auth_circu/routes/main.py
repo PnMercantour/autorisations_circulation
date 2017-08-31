@@ -73,9 +73,15 @@ def home():
 
 
 @app.route("/authorizations/new")
+@app.route("/authorizations/<auth_id>")
 @check_auth(2, redirect_on_expiration="/", redirect_on_invalid_token="/")
-def auth_form():
-    category = request.args.get('category', 'other')
+def auth_form(auth_id=None):
+
+    if auth_id:
+        auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+        category = auth_req.category
+    else:
+        category = request.args.get('category', 'other'),
 
     if category == "agropasto":
         filter = RestrictedPlace.category != "legacy"
@@ -83,31 +89,6 @@ def auth_form():
         filter = RestrictedPlace.category == "piste"
 
     motives = RequestMotive.query.order_by(RequestMotive.created.asc())
-    places = (RestrictedPlace.query
-                             .filter(
-                                 filter &
-                                 (RestrictedPlace.active == True)  # noqa
-                             ).order_by(RestrictedPlace.name.asc()))
-
-    return render_template(
-        'auth_form.html',
-        motives=motives,
-        category=request.args.get('category', 'other'),
-        places=json.dumps([place.serialize() for place in places])
-    )
-
-
-@app.route("/authorizations/<auth_id>")
-@check_auth(2, redirect_on_expiration="/", redirect_on_invalid_token="/")
-def auth_edit_form(auth_id):
-    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
-
-    motives = RequestMotive.query.order_by(RequestMotive.created.asc())
-
-    if auth_req.category == "agropasto":
-        filter = RestrictedPlace.category != "legacy"
-    else:
-        filter = RestrictedPlace.category == "piste"
 
     places = (RestrictedPlace.query
                              .filter(
@@ -120,8 +101,8 @@ def auth_edit_form(auth_id):
         motives=motives,
         category=request.args.get('category', 'other'),
         places=json.dumps([place.serialize() for place in places]),
-        auth_request=model_to_json(auth_req),
-        auth_num=auth_req.number
+        auth_request=model_to_json(auth_req) if auth_id else None,
+        auth_num=auth_req.number if auth_id else None
     )
 
 
