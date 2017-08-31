@@ -151,7 +151,7 @@
                     {{ motive.name }}
                   </option>
 
-                {% elif category == "pro" and "commerciales" in motive.name %}
+                {% elif category == "agropasto" and "commerciales" in motive.name %}
                 <option value="{{ motive.id }}"
                         ng-init="vm.request.motive = '{{ motive.id}}'">
                   {{ motive.name }}
@@ -461,7 +461,7 @@
           <button class="btn btn-warning" type="button" ng-click="vm.cancel()">Cancel</button>
       </div>
   </script>
-
+  {{ vm.requestForm.$error}}
   {% endraw %}
 
 </form>

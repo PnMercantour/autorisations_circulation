@@ -110,14 +110,21 @@ def generate_auth_doc(auth_id):
 
     places = list(auth_req.places)
     vehicules = list(auth_req.vehicules)
+
+    auth_start_date = auth_req.auth_start_date.strftime('%d/%m/%Y')
+    auth_end_date = auth_req.auth_end_date.strftime('%d/%m/%Y')
+    # agro pasto letters don't display the day for those dates
+    if auth_req.category == "agropasto":
+        auth_start_date = auth_start_date[3:]
+        auth_end_date = auth_end_date[3:]
     data = odt_renderer.render(
         template.path,
         author_prefix=prefix,
         auth_req=auth_req,
         request_date=auth_req.request_date.strftime('%d/%m/%Y'),
         feminin=auth_req.author_gender == "f",
-        auth_start_date=auth_req.auth_start_date.strftime('%d/%m/%Y'),
-        auth_end_date=auth_req.auth_end_date.strftime('%d/%m/%Y'),
+        auth_start_date=auth_start_date,
+        auth_end_date=auth_end_date,
         places=places,
         places_count=len(places),
         vehicules=vehicules,

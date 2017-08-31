@@ -7,6 +7,9 @@ angular.module('auth_request', [
   'ngSanitize',
 ])
 
+// This controller is starting to get big and include many conditional.
+// It may be a good thing to delegate some of it's behavior to a 3 services,
+// one for each letter type.
 .controller('RequestFormCtrl', function ($location, $http, $filter, $q, $uibModal) {
 
   var vm = this;
@@ -62,7 +65,6 @@ angular.module('auth_request', [
 
   // salese is a specific case: it has date boundaries and a mandatory
   // place
-  console.log(vm.request.category)
   if (vm.request.category == "salese"){
     var piste = vm.places.filter(function(place){
       return normalize(place.name).indexOf("salese") != -1;
@@ -211,12 +213,19 @@ angular.module('auth_request', [
         var date = $filter('date')(new Date(), "yyyy-MM-dd");
         saveAs(blob, `${auth.author_name}_${date}.odt`);
     }, function(error){
+
       scope.status = "error";
       if (error.status === -1){ // ignore error from the user aborting the request
         return;
       }
+      if (error.status === 500){ // server error
+        console.log(error)
+        scope.error = "Erreur inconnue. Veuillez réessayer ou contactez un administrateur.";
+        return;
+      }
       var str = String.fromCharCode.apply(null, new Uint8Array(error.data));
       scope.error = JSON.parse(str).message;
+
     }).finally();
   };
 

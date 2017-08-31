@@ -320,6 +320,11 @@ angular.module('auth_circu')
       if (error.status === -1){ // ignore error from the user aborting the request
         return;
       }
+      if (error.status === 500){ // server error
+        console.log(error)
+        scope.error = "Erreur inconnue. Veuillez réessayer ou contactez un administrateur.";
+        return;
+      }
       var str = String.fromCharCode.apply(null, new Uint8Array(error.data));
       scope.error = JSON.parse(str).message;
     }).finally();
