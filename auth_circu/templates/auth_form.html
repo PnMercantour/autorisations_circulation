@@ -88,7 +88,7 @@
                      close-text="Fermer"
                      current-text="Aujourd'hui"
                      required
-                     clear-text="Supprimer"  />
+                     clear-text="Supprimer" />
               <span class="input-group-btn">
                 <button type="button" class="btn btn-default"
                         ng-click="vm.requestDatePicker.opened = true">
@@ -175,7 +175,6 @@
         </div>
 
         <div class="row proofdoc" ng-repeat="doc in vm.request.proofDocuments">
-
           <div class="col-md-10">
 
             <a href="#" class="delete"
@@ -290,6 +289,7 @@
                  close-text="Fermer"
                  current-text="Aujourd'hui"
                  clear-text="Supprimer"
+                 maxlength="10"
                  />
           <span class="input-group-btn">
             <button type="button" class="btn btn-default"
@@ -312,6 +312,7 @@
                  close-text="Fermer"
                  current-text="Aujourd'hui"
                  clear-text="Supprimer"
+                 maxlength="10"
           />
           <span class="input-group-btn">
             <button type="button" class="btn btn-default"
@@ -424,9 +425,9 @@
         </button>
 
         <a ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
-                ng-if="!vm.requestForm.$dirty && vm.requestForm.$valid"
-                ng-href="/exports/authorizations/{{vm.request.id}}"
-                target="self_"
+                ng-if="!vm.requestForm.$dirty && vm.requestForm.$valid && vm.status !== 'saving'"
+                href="#"
+                ng-click="vm.onDownloadAuthDocs($event, vm.request)"
         >
           Télécharger les documents
           <i ng-if="!vm.requestForm.$dirty && vm.request.valid && vm.status !== 'saving'"
@@ -440,6 +441,27 @@
 
 
   </footer>
+
+  <!-- This is a duplicate of the code in listing.html. We may want to refactor it. -->
+  <script type="text/ng-template" id="loading-modal.html">
+      <div class="modal-header">
+          <h3 class="modal-title" id="modal-title">Veuillez patienter</h3>
+      </div>
+
+      <div class="modal-body" id="modal-body"
+           ng-if="vm.scope.status == 'loading'">
+        <img src="/static/img/spinner.gif" class="spinner" />
+        Préparation du document
+      </div>
+      <div class="modal-body" id="modal-body"
+           ng-if="vm.scope.status == 'error'">
+        {{ vm.scope.error }}
+      </div>
+      <div class="modal-footer">
+          <button class="btn btn-warning" type="button" ng-click="vm.cancel()">Cancel</button>
+      </div>
+  </script>
+
   {% endraw %}
 
 </form>
