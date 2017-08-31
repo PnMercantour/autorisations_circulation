@@ -254,7 +254,8 @@ def api_post_authorizations():
         vehicules=request.json.get('vehicules', []),
         places=places,
         active=True,
-        valid=request.json.get('valid', False)
+        valid=request.json.get('valid', False),
+        template_id=request.json.get('template')
     )
 
     db.session.add(auth_req)
@@ -292,6 +293,7 @@ def api_put_authorizations(auth_id):
     auth_req.places = places
     auth_req.active = True
     auth_req.valid = request.json.get('valid', False)
+    auth_req.template_id = request.json.get('template') or None
 
     db.session.add(auth_req)
     db.session.commit()

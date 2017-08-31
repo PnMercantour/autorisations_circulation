@@ -110,7 +110,7 @@ def generate_auth_doc(auth_id):
     if prefix:
         prefix += " "
 
-    places = list(auth_req.places)
+    places = [place.name for place in auth_req.places]
     vehicules = list(auth_req.vehicules)
 
     auth_start_date = auth_req.auth_start_date.strftime('%d/%m/%Y')
@@ -120,7 +120,7 @@ def generate_auth_doc(auth_id):
         auth_start_date = auth_start_date[3:]
         auth_end_date = auth_end_date[3:]
     data = odt_renderer.render(
-        template.path,
+        template.abs_path,
         author_prefix=prefix,
         auth_req=auth_req,
         request_date=auth_req.request_date.strftime('%d/%m/%Y'),

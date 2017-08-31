@@ -22,7 +22,9 @@ from pypnusershub.db.tools import AccessRightsError, user_from_token
 from pypnusershub.routes import check_auth
 
 from ..conf import app
-from ..db.models import AuthRequest, RequestMotive, RestrictedPlace, db
+from ..db.models import (
+    AuthRequest, RequestMotive, RestrictedPlace, db, AuthDocTemplate
+)
 from ..db.utils import get_object_or_abort, model_to_json
 from ..admin import setup_admin
 
@@ -80,19 +82,26 @@ def auth_form(auth_id=None):
     if auth_id:
         auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
         category = auth_req.category
+        selected_template = auth_req.template
     else:
-        category = request.args.get('category', 'other'),
+        category = request.args.get('category', 'other')
+        selected_template = None
 
     if category == "agropasto":
-        filter = RestrictedPlace.category != "legacy"
+        place_filter = RestrictedPlace.category != "legacy"
     else:
-        filter = RestrictedPlace.category == "piste"
+        place_filter = RestrictedPlace.category == "piste"
 
     motives = RequestMotive.query.order_by(RequestMotive.created.asc())
 
+    templates = (AuthDocTemplate.query
+                             .filter(
+                                 AuthDocTemplate.active == True  # noqa
+                             ).order_by(AuthDocTemplate.updated.desc()))
+
     places = (RestrictedPlace.query
                              .filter(
-                                 filter &
+                                 place_filter &
                                  (RestrictedPlace.active == True)  # noqa
                              ).order_by(RestrictedPlace.name.asc()))
 
@@ -102,7 +111,9 @@ def auth_form(auth_id=None):
         category=request.args.get('category', 'other'),
         places=json.dumps([place.serialize() for place in places]),
         auth_request=model_to_json(auth_req) if auth_id else None,
-        auth_num=auth_req.number if auth_id else None
+        auth_num=auth_req.number if auth_id else None,
+        templates=templates,
+        selected_template=selected_template
     )
 
 

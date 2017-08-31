@@ -13,6 +13,7 @@ from sqlalchemy_utils import (
     ScalarListType
 )
 
+from auth_circu.conf import UPLOAD_DIR
 from pypnusershub.db.models import db
 
 
@@ -134,12 +135,24 @@ class AuthDocTemplate(db.Model, Timestamp):
         default='',
     )
 
+    @property
+    def abs_path(self):
+        return str(UPLOAD_DIR / self.path)
+
     def __repr__(self):
         return f"<AuthDocTemplate id='{self.id}'>"
 
     def __unicode__(self):
         return self.name
 
+    def serialize(self):
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "path": self.path,
+            "active": self.active,
+            "default_for": self.default_for.code,
+        }
 
 @listens_for(AuthDocTemplate, 'after_insert')
 @listens_for(AuthDocTemplate, 'after_update')
@@ -286,7 +299,8 @@ class AuthRequest(db.Model, Timestamp):
             'group_vehicules_on_doc': self.group_vehicules_on_doc,
             'created': f'{self.created:%d/%m/%Y}',
             'active': self.active,
-            'valid': self.valid
+            'valid': self.valid,
+            'template': str(self.template_id)
         }
 
     def __repr__(self):

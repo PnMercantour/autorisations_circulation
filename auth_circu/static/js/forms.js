@@ -38,12 +38,16 @@ angular.module('auth_request', [
     groupVehiculesOnDoc: false,
     category: $location.search().category || 'other',
     valid: false,
+    template: '',
   };
 
   // we do this only when editing an existing request
   if (window.PRELOAD_REQUEST){
     vm.request = window.PRELOAD_REQUEST;
+
+    // shape data so that it fits the form widgets
     vm.request.motive = vm.request.motive && vm.request.motive.id;
+    vm.request.template = vm.request.tempate ||'';
 
     var parseDate = function (string){
       if (!string){
@@ -51,7 +55,7 @@ angular.module('auth_request', [
       }
 
       string = string.split('/');
-      return new Date(string[2], string[1], string[0]);
+      return new Date(parseInt(string[2]), parseInt(string[1]) - 1, parseInt(string[0]));
     };
 
     vm.request.requestDate = parseDate(vm.request.requestDate);
@@ -211,7 +215,7 @@ angular.module('auth_request', [
             {type: "application/vnd.oasis.opendocument.text;charset=charset=utf-8"}
         );
         var date = $filter('date')(new Date(), "yyyy-MM-dd");
-        saveAs(blob, `${auth.author_name}_${date}.odt`);
+        saveAs(blob, `${vm.request.authorName}_${date}.odt`);
     }, function(error){
 
       scope.status = "error";

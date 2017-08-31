@@ -369,13 +369,25 @@
 
   </fieldset>
 
-  {% raw %}
+
   <footer id="footer" class="ng-cloak">
 
     <fieldset>
 
-      <p>Modèles de lettre par défaut. <a href="#">Modifier</a>.</p>
+      <p>
+        <label>Modèle de lettre :</label>
+          <select ng-model="vm.request.template" >
+              <option value="">Par défaut</option>
+            {% for template in templates %}
+              <option value="{{ template.id }}"
+                      {% if template == selected_template %}selected{% endif %}>
+                      {{ template.name }}
+              </option>
+            {% endfor %}
+          </select>
+      </p>
 
+  {% raw %}
       <p ng-if="!vm.request.valid && vm.request.id"
         class="delete-draft-button">
           <button class="btn btn-danger"
