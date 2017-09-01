@@ -220,9 +220,10 @@ def parseJSDate(string):
 
 
 @app.route('/api/v1/authorizations', methods=['POST'])
+@app.route('/api/v1/authorizations/<auth_id>', methods=['PUT'])
 @check_auth(2)
-def api_post_authorizations():
-    """ Create a new authorization
+def api_put_authorizations(auth_id=None):
+    """ Create a new authorization or update a new one
 
         We should use some kind of automatic validation for this on the server
         side, but it's unlikely somebody will try to disable JS in the parc and
@@ -233,44 +234,10 @@ def api_post_authorizations():
         @check_auth still ensure permissions are respected, and SQLAlchemy
         will automatically sanitize SQL so we should be ok security wise.
     """
-    places = []
-    for place in request.json.get('places', []):
-        filter = RestrictedPlace.id == place['id']
-        places.append(RestrictedPlace.query.filter(filter).one())
-
-    auth_req = AuthRequest(
-        category=request.json.get('category'),
-        request_date=parseJSDate(request.json.get('requestDate')),
-        motive_id=request.json.get('motive'),
-        author_gender=request.json.get('authorGender'),
-        author_name=request.json.get('authorName'),
-        author_address=request.json.get('authorAddress'),
-        author_phone=request.json.get('authorPhone'),
-        group_vehicules_on_doc=request.json.get('groupVehiculesOnDoc'),
-        auth_start_date=parseJSDate(request.json.get('authStartDate')),
-        auth_end_date=parseJSDate(request.json.get('authEndDate')),
-        proof_documents=request.json.get('proofDocuments', []),
-        rules=request.json.get('rules'),
-        vehicules=request.json.get('vehicules', []),
-        places=places,
-        active=True,
-        valid=request.json.get('valid', False),
-        template_id=request.json.get('template')
-    )
-
-    db.session.add(auth_req)
-    db.session.commit()
-    return jsonify(auth_req.serialize())
-
-
-@app.route('/api/v1/authorizations/<auth_id>', methods=['PUT'])
-@check_auth(2)
-def api_put_authorizations(auth_id):
-    """ Update an existing AuthRequest
-
-        Same notes that for api_post_authorizations().
-    """
-    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+    if auth_id is not None:
+        auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+    else:
+        auth_req = AuthRequest()
 
     places = []
     for place in request.json.get('places', []):

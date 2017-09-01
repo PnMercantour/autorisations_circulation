@@ -185,12 +185,11 @@ def generate_auth_number(year=None, baseline=1):
                            .first())
 
     # extract it if it exists or start the counter at 1
+    num = baseline
     if last_req:
-        num = int(last_req.number.split('c')[-1]) + 1
-    else:
-        num = baseline
+        num = int(last_req.number.split('C')[-1] or (baseline - 1)) + 1
 
-    return f"{year}-c{num:04}"
+    return f"{year}-C{num:04}"
 
 
 class AuthRequest(db.Model, Timestamp):

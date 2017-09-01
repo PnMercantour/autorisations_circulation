@@ -90,7 +90,7 @@ class AuthDocTemplateView(AuthenticatedModelView):
     }
     form_widget_args = {
         'path': {
-            'readonly': True
+            'readonly': True,
         },
     }
     column_searchable_list = ['name']
