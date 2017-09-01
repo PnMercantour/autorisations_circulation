@@ -119,6 +119,16 @@ def generate_auth_doc(auth_id):
     if auth_req.category == "agropasto":
         auth_start_date = auth_start_date[3:]
         auth_end_date = auth_end_date[3:]
+
+    # generate an easy to manipulate data structure for building the
+    # authorizations cards. It's easier to do that here than in the template:
+    # we can now always act like we have several cards even if we have only
+    # one and always loop.
+    if auth_req.group_vehicules_on_doc:
+        cards = [vehicules]
+    else:
+        cards = [[v] for v in vehicules]
+
     data = odt_renderer.render(
         template.abs_path,
         author_prefix=prefix,
@@ -132,7 +142,8 @@ def generate_auth_doc(auth_id):
         vehicules=vehicules,
         vehicules_count=len(vehicules),
         doc_creation_date=datetime.now().strftime("%d %B %Y"),
-        legal_contact=legal_contact.content
+        legal_contact=legal_contact.content,
+        cards=cards
     )
 
     filename = f'{auth_req.author_name} - {datetime.now():%d/%m/%Y}.odt'
