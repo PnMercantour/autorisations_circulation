@@ -402,3 +402,19 @@ Forms
 .ui-select-container .form-control {
     width: 100% !important;
 }
+
+#auth-form .loading {
+  text-align: center;
+}
+
+#auth-form .loading img{
+  margin-right: 1rem;
+}
+
+#auth-form .modal-body {
+  text-align: center;
+}
+
+#auth-form .modal-body img {
+  margin-right: 1rem;
+}

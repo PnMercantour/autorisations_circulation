@@ -10,6 +10,7 @@ from flask import request, send_file, g, make_response, jsonify
 from secretary import Renderer
 
 from werkzeug.exceptions import BadRequest, abort
+from sqlalchemy.orm.exc import NoResultFound
 
 from pypnusershub.routes import check_auth
 
@@ -77,24 +78,26 @@ def export_authorizations():
         )
 
 
+def json_abort(message, status_code=400):
+    """ Like flask's abord, but in a JSON format """
+    msg = jsonify(message=message)
+    return abort(make_response(msg, 400))
+
+
 @app.route('/exports/authorizations/<auth_id>', methods=['POST', 'GET'])
 @check_auth(2)
 def generate_auth_doc(auth_id):
     auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
     if not auth_req.valid:
-        msg = jsonify(message="Les brouillons ne peuvent être imprimés")
-        return abort(make_response(msg, 400))
+        return json_abort("Les brouillons ne peuvent être imprimés")
 
     legal_contact = g.user.role.legal_contact
     if not legal_contact or not legal_contact.content:
-        msg = jsonify(
-            message=(
-                "Votre compte n'a pas de coordonnées de contact associées "
-                "et ne peut donc imprimer un document. Veuilez demander à un "
-                "administrateur de vous les rajouter."
-            )
+        return json_abort(
+            "Votre compte n'a pas de coordonnées de contact associées "
+            "et ne peut donc imprimer un document. Veuilez demander à un "
+            "administrateur de vous les rajouter."
         )
-        return abort(make_response(msg, 400))
 
     template = auth_req.template
     if not template:
@@ -104,7 +107,14 @@ def generate_auth_doc(auth_id):
         if auth_req.category == "agropasto":
             template_filter = AuthDocTemplate.default_for == "letter_agropasto"
 
-        template = get_object_or_abort(AuthDocTemplate, template_filter)
+        try:
+            template_filter &= (AuthDocTemplate.active == True)
+            template = AuthDocTemplate.query.filter(template_filter).one()
+        except NoResultFound:
+            return json_abort(
+                "Il manque un template de document. Veuillez contactez un "
+                "administrateur pour qu'il les mettent en ligne."
+            )
 
     prefix = auth_req.author_prefix
     if prefix:
