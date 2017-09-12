@@ -171,7 +171,9 @@
           </p>
         </td>
 
-        <td>{{ ::auth.places|join:', ':'name'}}</td>
+        <td title=" {{ ::auth.places|join:', ':'st'}}" >
+          {{ ::auth.places|join:', ':'name'}}
+        </td>
 
         <td>{{ ::auth.vehicules|join:', '}}</td>
 

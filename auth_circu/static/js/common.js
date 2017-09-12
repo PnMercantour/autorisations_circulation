@@ -33,9 +33,10 @@ angular.module('auth_circu', ['ui.bootstrap'])
         if (!Array.isArray(array)) {
           throw('The join filter expects and array')
         }
-        return (!!prop ? array.map(function (item) {
-            return item[prop];
-        }) : array).join(separator);
+        if (!!prop){
+          array = array.map(function(item) {return item[prop];});
+        }
+        return array.filter(function(s){return s.length;}).join(separator);
     };
 })
 

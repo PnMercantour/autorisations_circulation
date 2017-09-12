@@ -198,7 +198,15 @@ def api_get_authorizations():
     auth_requests = (auth_requests.order_by(AuthRequest.updated.desc())
                                   .all())
 
-    return jsonify([obj.serialize() for obj in auth_requests])
+    auth_requests = [obj.serialize() for obj in auth_requests]
+
+    # small hack to avoid having the very long Salèse name displayed
+    # in the listing
+    for req in auth_requests:
+        for place in req['places']:
+            if "Piste de Salèse" in place['name']:
+                place['name'] = "Piste de Salèse"
+    return jsonify(auth_requests)
 
 
 @app.route('/api/v1/authorizations/<auth_id>', methods=['DELETE'])

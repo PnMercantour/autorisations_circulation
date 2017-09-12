@@ -263,8 +263,9 @@ def populate_db(data_file, db=db):
         with text_resource_stream('restricted_places.csv', 'auth_circu.db') as data:
             for row in DictReader(data):
                 place = auth_circu.db.models.RestrictedPlace(
-                    name=row['name'].strip(),
+                    name=row['name'].strip().replace('_', ' '),
                     category=row['category'].strip(),
+                    st=row['st'].strip(),
                     active=True,
                 )
                 db.session.add(place)

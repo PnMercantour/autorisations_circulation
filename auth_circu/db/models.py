@@ -1,6 +1,7 @@
 
 from uuid import uuid4
 from datetime import date
+from csv import DictReader
 
 from sqlalchemy.orm import load_only, relationship, backref
 from sqlalchemy.event import listens_for
@@ -15,9 +16,7 @@ from sqlalchemy_utils import (
 
 from auth_circu.conf import UPLOAD_DIR
 from pypnusershub.db.models import db
-
-
-# TODO: check if we can generate the UUID on the DB side
+from pypnusershub.utils import text_resource_stream
 
 
 def in_one_year():
@@ -73,9 +72,16 @@ class RestrictedPlace(db.Model, Timestamp):
         ('piste', 'Piste')
     ]
 
+    # Dynamically create a list of allowed ST
+    with text_resource_stream('restricted_places.csv', 'auth_circu.db') as data:
+        ST = sorted(set(row['st'] for row in DictReader(data)))
+        ST = [(name, name) for name in ST]
+
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
     name = db.Column(db.Unicode(256), nullable=False)
     active = db.Column(db.Boolean, default=True, nullable=False)
+    # french short for "service territorial"
+    st = db.Column(ChoiceType(ST))
     category = db.Column(
         ChoiceType(CATEGORIES),
         nullable=False,
@@ -86,7 +92,8 @@ class RestrictedPlace(db.Model, Timestamp):
             'id': str(self.id),
             'name': self.name,
             'active': self.active,
-            'category': self.category.code
+            'category': self.category.code,
+            'st': self.st.value if self.st else ''
         }
 
     def __repr__(self):
@@ -153,6 +160,7 @@ class AuthDocTemplate(db.Model, Timestamp):
             "active": self.active,
             "default_for": self.default_for.code,
         }
+
 
 @listens_for(AuthDocTemplate, 'after_insert')
 @listens_for(AuthDocTemplate, 'after_update')

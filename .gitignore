@@ -79,3 +79,8 @@ htmlcov
 
 *.sqlite
 settings.ini
+
+
+# project related
+.env
+upload

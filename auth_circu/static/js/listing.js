@@ -54,10 +54,14 @@ angular.module('auth_circu')
             return true;
           }
 
-          // check the places names
+          // check the places names and st
           for (var y = 0, l = authRequest.places.length; y < l; y++) {
-            var place = normalize(authRequest.places[y].name);
-            if (place.indexOf(filter) !== -1){
+            var name = normalize(authRequest.places[y].name);
+            if (name.indexOf(filter) !== -1){
+              return true;
+            }
+            var st = normalize(authRequest.places[y].st);
+            if (st.indexOf(filter) !== -1){
               return true;
             }
           }
@@ -91,6 +95,9 @@ angular.module('auth_circu')
 ) {
   var vm = this;
   var normalize = $filter('normalize');
+  // make it available globally to avoid the cost of injection in the
+  // <places> component
+  window.__join_filter = $filter('join');
 
   // Get the pagination values from several sources: the URL parameters,
   // the localStorage or the preloaded values from the server.
@@ -333,5 +340,6 @@ angular.module('auth_circu')
   // populate de listing
   vm.refreshDateFilter();
 });
+
 
 })();

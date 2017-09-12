@@ -114,7 +114,8 @@ class RestrictedPlaceView(AuthenticatedModelView):
     column_searchable_list = ['name']
     column_default_sort = ('category', True)
     column_formatters = {
-        "category": lambda v, c, m, p: m.category.value
+        "category": lambda v, c, m, p: m.category.value,
+        "st": lambda v, c, m, p: m.st.value
     }
     column_filters = (
         filters.FilterInList(
@@ -122,13 +123,19 @@ class RestrictedPlaceView(AuthenticatedModelView):
             name='Category',
             options=RestrictedPlace.CATEGORIES
         ),
+        filters.FilterInList(
+            column=RestrictedPlace.st,
+            name='st',
+            options=RestrictedPlace.ST
+        ),
     )
     column_labels = {
         'name': 'Nom',
         'category': 'Categorie',
+        'st': 'ST',
         'active': 'Actif'
     }
-    form_columns = ['name', 'category', 'active']
+    form_columns = ['name', 'category', 'st', 'active']
 
 
 def setup_admin(app):
