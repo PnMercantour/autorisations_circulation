@@ -18,9 +18,6 @@ Cependant, chaque année le Parc national du Mercantour (PNM) délivre entre 600
 
 Consulter les fonctionnalités : A venir
 
-# Installation
-
-Consulter la documentation : A venir
 
 # License
 
@@ -30,7 +27,7 @@ Consulter la documentation : A venir
 
 # Installation
 
-Il faut avoir Python 3.6 desinstallé:
+Il faut avoir Python 3.6 installé:
 
 - sous windows on peut télécharger l'installer 64bits sur le site officiel (https://www.python.org/downloads/release/python-360/)
 - sous mac on peut utiliser homebrew (http://docs.python-guide.org/en/latest/starting/install/osx/)
@@ -60,12 +57,24 @@ On créé un environnement virtuel::
     cd auth_circu
     virtualenv env -p /chemin/vers/python3.6 # creer l'environnement virtuel
     source env/bin/activate # activer l'env
+    
+Assurez-vous d'avoir de quoi compiler les extensions C nécessaires à la connection à la base de données et à la génération des documents, particulièrement les headers Python et de libffi, les libs de rendus cairo et pango ainsi qu'un compilateur comme GCC. Exemple sous Ubuntu:
+
+sudo apt-get install build-essential python3.6-dev libffi-dev libcairo2 libpango1.0-0
 
 On installe les dependances dans l'environnement virtuel::
 
     pip install -r requirements.txt
+    
+La génération de documents demande une version de dev de genshi. Il faudra installer subversion et genshi à la main. Exemple sous ubuntu::
 
-On génère un fichier de configuration::
+    sudo apt-get install subversion
+    svn co https://svn.edgewall.org/repos/genshi/trunk genshi
+    cd genshi
+    python setup.py install
+    cd ..
+
+On génère un fichier de configuration. Lancer cette commande depuis le sossier qui contient le dossier "auth_circu" ::
 
     python -m auth_circu generate_config_file
 
@@ -79,6 +88,17 @@ Le fichier de configuration devrait ressembler à ceci:
 
 Assurez-vous également que côté base de données:
 
-- vous avez une version suffisament récente de postgres (9.5 ou plus)
-- l'utilisateur a le droit de créer un schéma dans la base (même si le schéma existe déjà). Exemple en faisant: GRANT CREATE ON DATABASE nom_data_base TO nom_utilisateur;
+- vous avez une version suffisament récente de postgres (9.5 ou plus).
+- vous avez créez une base de données et un utilisateur (role) qui a tous les droits sur cette base.
+- l'utilisateur a le droit de créer un schéma dans la base (même si le schéma existe déjà). Exemple en faisant: GRANT CREATE ON DATABASE nom_data_base TO nom_utilisateur.
+- la base de données est accessible de manière sécurisée depuis l'extérieur afin de permettre à UsersHub de se connecter.
+- UsersHub possède les identifiants et I+ port de la base de données.
 
+Afin d'avoir les dates formatées dans la bonne langue, il faut générer les locales françaises installées sur son OS. Exemple sous Ubuntu::
+
+    sudo locale-gen fr_FR.UTF-8
+    sudo update-locale 
+
+Un server WSGI pour lancer le site Web flask est indispensable. Gunicorn ou uWSGI étant les standards::
+
+    pip install gunicorn

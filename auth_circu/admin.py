@@ -72,7 +72,7 @@ class LegalContactView(AuthenticatedModelView):
         'content': 'Contenu'
     }
     column_formatters = {
-        "user": lambda v, c, m, p: m.user.identifiant if m.user else ''
+        "user": lambda v, c, m, p: getattr(m.user, 'identifiant', '') or ''
     }
 
 

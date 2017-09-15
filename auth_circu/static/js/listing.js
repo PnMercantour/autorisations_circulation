@@ -209,12 +209,16 @@ angular.module('auth_circu')
     // to be created, the user can cancel the request by clicking on the
     // cancel button.
     var canceler = $q.defer();
+    var scope = {};
 
     // show modal with spinner
     var modalWindow = $uibModal.open({
       templateUrl: 'loading-modal.html',
       controllerAs: 'vm',
       controller: function ($uibModalInstance) {
+        this.scope = scope;
+        this.scope.status = 'loading';
+        this.scope.error = '';
         this.cancel = function () {
           // dismiss the windows if the cancel button is clicked
           canceler.resolve();
@@ -253,12 +257,14 @@ angular.module('auth_circu')
 
     // Same workflows as for onDownloadODS
     var canceler = $q.defer();
-
+    var scope = {};
     var modalWindow = $uibModal.open({
       templateUrl: 'loading-modal.html',
       controllerAs: 'vm',
       controller: function ($uibModalInstance) {
-        this.status = 'loading';
+        this.scope = scope;
+        this.scope.status = 'loading';
+        this.scope.error = '';
         this.cancel = function () {
           // dismiss the windows if the cancel button is clicked
           $uibModalInstance.dismiss('cancel');

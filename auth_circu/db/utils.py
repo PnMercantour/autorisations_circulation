@@ -151,7 +151,7 @@ def populate_db(data_file, db=db):
 
     all_places = {}
 
-    with open(data_file) as data:
+    with open(data_file, encoding="utf8") as data:
 
         for row in DictReader(data):
 
@@ -314,6 +314,9 @@ def get_object_or_abort(model, *filters, code=404):
 
 
 def model_to_json(obj):
+
+
+
     """ Take a serializable model and turn it to JSON
         Keys are converted to proper naming convention
     """
