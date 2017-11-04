@@ -140,7 +140,7 @@ def api_get_authorizations():
             # Keep requests emitted sometime between these 5 years,
             # but on this particular month
             is_emitted = (
-               (
+               ( # noqa
                     (five_years_ago <= extracted_creation_year) &
                     (extracted_creation_year <= current_year)
                ) & (extracted_creation_month == month)
