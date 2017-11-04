@@ -423,7 +423,7 @@
 
         <button ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
                 ng-click="vm.save($event)"
-                ng-if="vm.requestForm.$dirty || vm.status === 'saving'"
+                ng-if="vm.requestForm.$dirty || vm.status === 'saving' || !vm.request.valid"
         >
           <span ng-if="vm.requestForm.$valid">
                Sauvegarder & générer les documents
@@ -437,7 +437,7 @@
         </button>
 
         <a ng-class="{'btn': true, 'btn-warning': vm.requestForm.$invalid, 'btn-success': vm.requestForm.$valid}"
-                ng-if="!vm.requestForm.$dirty && vm.requestForm.$valid && vm.status !== 'saving'"
+                ng-if="!vm.requestForm.$dirty && vm.request.valid && vm.status !== 'saving'"
                 href="#"
                 ng-click="vm.onDownloadAuthDocs($event, vm.request)"
         >
