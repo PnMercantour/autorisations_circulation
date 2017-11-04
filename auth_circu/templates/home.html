@@ -29,7 +29,7 @@
          ng-controller="LoginFormCtrl as vm" ng-submit="vm.login($event)">
 
       {% raw %}
-      <p class="alert alert-warning" ng-if="vm.error">{{ vm.error }}</p>
+      <p class="alert alert-warning ng-cloak" ng-if="vm.error">{{ vm.error }}</p>
       {% endraw %}
 
       <div class="form-group">

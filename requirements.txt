@@ -7,5 +7,5 @@ ipython==5.3.0  # used in the shell subcommand
 Flask-Excel==0.0.7  # generate table files from flask
 pyexcel-ods==0.4.0  # table files can be ods
 secretary==0.2.16  # generate ods files
-git+https://github.com/PnX-SI/UsersHub-authentification-module/
+git+https://github.com/PnX-SI/UsersHub-authentification-module/#egg=pypnusershub
 WeasyPrint==0.40
