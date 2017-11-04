@@ -44,7 +44,7 @@ def init_db(app, db=db, debug_db=False):
     """ Create the schema and the tables if they don't exist """
 
     # init pypnusershub's db
-    #init_schema(app.config['SQLALCHEMY_DATABASE_URI'])
+    # init_schema(app.config['SQLALCHEMY_DATABASE_URI'])
 
     start_app_context()
     if not ApplicationRight.query.filter().count():
@@ -160,10 +160,6 @@ def populate_db(data_file, db=db):
 
         for row in DictReader(data):
 
-            # Default categ is "other", we should not have 'pro' as they are
-            # a new thing, and we switch to salèze if we see it in the places
-            request_categ = "other"
-
             # Remove useless spaces.
             row = {key: value.strip() for key, value in row.items()}
 
@@ -176,7 +172,7 @@ def populate_db(data_file, db=db):
             for i in range(1, 5):
                 immat = row[f"IMMATRICULATION {i}"] or ""
                 immat = immat.upper().replace(' OU', '')
-                immat =  immat.replace('-', "").replace(' ', '')
+                immat = immat.replace('-', "").replace(' ', '')
                 if immat:
                     vehicules.add(immat)
 
@@ -264,17 +260,7 @@ def populate_db(data_file, db=db):
 
         db.session.commit()
 
-        # add known restricted places
-        with text_resource_stream('restricted_places.csv', 'auth_circu.db') as data:
-            for row in DictReader(data):
-                place = auth_circu.db.models.RestrictedPlace(
-                    name=row['name'].strip().replace('_', ' '),
-                    category=row['category'].strip(),
-                    st=row['st'].strip(),
-                    active=True,
-                )
-                db.session.add(place)
-                yield row
+        yield from import_restricted_place(db)
 
         # add known request motives
         with text_resource_stream('motives.csv', 'auth_circu.db') as data:
@@ -284,19 +270,6 @@ def populate_db(data_file, db=db):
                     active=True,
                 )
                 db.session.add(motive)
-                yield row
-
-        # add base auth document templates
-        with text_resource_stream('templates.csv', 'auth_circu.db') as data:
-            for row in DictReader(data):
-                path = auth_circu.conf.UPLOAD_DIR / row['filename'].strip()
-                template = auth_circu.db.models.AuthDocTemplate(
-                    name=row['name'].strip(),
-                    default_for=row['for'].strip(),
-                    path=str(path),
-                    active=True,
-                )
-                db.session.add(template)
                 yield row
 
         db.session.commit()
@@ -319,9 +292,6 @@ def get_object_or_abort(model, *filters, code=404):
 
 
 def model_to_json(obj):
-
-
-
     """ Take a serializable model and turn it to JSON
         Keys are converted to proper naming convention
     """
@@ -331,3 +301,23 @@ def model_to_json(obj):
         head, *tail = key.split('_')
         res[head + ''.join(chunk.title() for chunk in tail)] = val
     return json.dumps(res)
+
+
+def import_restricted_place(db):
+
+    # add known restricted places
+    with text_resource_stream('restricted_places.csv', 'auth_circu.db') as data:
+        for row in DictReader(data):
+            place = auth_circu.db.models.RestrictedPlace(
+                name=row['name'].strip().replace('_', ' '),
+                category=row['category'].strip(),
+                st=row['st'].strip(),
+                active=True,
+            )
+            db.session.add(place)
+            yield row
+
+
+def reset_restricted_places(db):
+    auth_circu.db.models.RestrictedPlace.query.delete()
+    list(import_restricted_place(db))
