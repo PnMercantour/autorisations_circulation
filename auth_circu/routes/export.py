@@ -1,3 +1,5 @@
+import unicodedata
+
 from io import BytesIO
 from datetime import datetime
 
@@ -157,9 +159,10 @@ def generate_auth_doc(auth_id):
     )
 
     filename = f'{auth_req.author_name} - {datetime.now():%d/%m/%Y}.odt'
+    filename = unicodedata.normalize('NFKD', filename).encode('ascii', 'ignore')
     return send_file(
         BytesIO(data),
-        attachment_filename=filename,
+        attachment_filename=filename.decode('ascii'),
         as_attachment=True
     )
 
