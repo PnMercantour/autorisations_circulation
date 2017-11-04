@@ -10,6 +10,7 @@ from csv import DictReader, reader
 from datetime import datetime
 
 from sqlalchemy.orm import exc
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy import create_engine
 
 from werkzeug.exceptions import abort
@@ -43,7 +44,7 @@ def init_db(app, db=db, debug_db=False):
     """ Create the schema and the tables if they don't exist """
 
     # init pypnusershub's db
-    init_schema(app.config['SQLALCHEMY_DATABASE_URI'])
+    #init_schema(app.config['SQLALCHEMY_DATABASE_URI'])
 
     start_app_context()
     if not ApplicationRight.query.filter().count():
@@ -65,9 +66,13 @@ def init_db(app, db=db, debug_db=False):
         Application,
         commit=True,
         id_application=app.config['AUTHCIRCU_USERSHUB_APP_ID'],
-        nom_application='Autorisations de circulation',
-        desc_application='Gestion des autorisations de circulation des '
-                         'véhicules à moteur dans le PN du mercantour'
+        create_method_kwargs={
+            'nom_application': 'Autorisations de circulation',
+            'desc_application': (
+                'Gestion des autorisations de circulation des '
+                'véhicules à moteur dans le PN du mercantour'
+            )
+        }
     )
 
 
@@ -125,7 +130,7 @@ def get_or_create(session,
             if commit:
                 session.commit()
             return created, False
-        except exc.IntegrityError:
+        except IntegrityError:
             return session.query(model).filter_by(**kwargs).one(), True
 
 
