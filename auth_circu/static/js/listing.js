@@ -44,13 +44,18 @@ angular.module('auth_circu')
       // loops to avoid to many function calls
       function (authRequest, index, array) {
 
-        // one of filters must be ok
+        // one of the filters must be ok
         for (var i = 0; i < filters.length; i++){
 
           var filter = filters[i];
 
           // check the request author name
           if (normalize(authRequest.author_name || '').indexOf(filter) !== -1){
+            return true;
+          }
+
+          // check the auth number
+          if (authRequest.number.indexOf(filter) !== -1){
             return true;
           }
 

@@ -29,6 +29,15 @@
 
     table td {
         word-wrap: break-word;
+        padding: 1ex;
+        font-size: 0.9rem;
+    }
+
+    table td:first-child,
+    table th:first-child {
+      text-align: center;
+      white-space: nowrap;
+      width: 15ex;
     }
   </style>
 </head>
@@ -46,6 +55,7 @@
       <th>{{ auth_requests[0][2] }}</th>
       <th>{{ auth_requests[0][3] }}</th>
       <th>{{ auth_requests[0][4] }}</th>
+      <th>{{ auth_requests[0][5] }}</th>
     </tr>
   </thead>
 

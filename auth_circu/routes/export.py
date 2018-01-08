@@ -33,6 +33,7 @@ def export_authorizations():
         raise BadRequest('"Authorizations" must be provided')
 
     header = [
+        '#',
         'Dates',
         'Auteur',
         'Adresse',
@@ -59,6 +60,7 @@ def export_authorizations():
         name += auth.get('author_name') or ''
 
         rows.append([
+            auth.get('number', '?'),
             dates,
             name,
             auth.get('author_address') or '',
