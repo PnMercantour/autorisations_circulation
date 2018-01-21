@@ -161,7 +161,7 @@ def populate_db(data_file, db=db):
         for row in DictReader(data):
 
             # Remove useless spaces.
-            row = {key: value.strip() for key, value in row.items()}
+            row = {key: (value or "").strip() for key, value in row.items()}
 
             name = "{NOM} {PRENOM}".format_map(row).strip()
             address = "{ADRESSE}\n{CODE POSTAL} {COMMUNE}".format_map(row)\
@@ -208,9 +208,11 @@ def populate_db(data_file, db=db):
 
             # Parse the starting and ending date
             try:
-                start_date = datetime.strptime(row['DEBUT DECISION'],
-                                               '%d/%m/%y').date()
-            except (ValueError, TypeError):
+                start_date = datetime.strptime(
+                    row['DEBUT DECISION'],
+                    '%d/%m/%y'
+                ).date()
+            except (ValueError, TypeError, KeyError):
                 start_date = None
 
             try:
@@ -218,8 +220,13 @@ def populate_db(data_file, db=db):
                     row['FIN DECISION'],
                     '%d/%m/%y'
                 ).date()
-            except (ValueError, TypeError):
+            except (ValueError, TypeError, KeyError):
                 end_date = None
+
+            year = int(row.get('ANNEE AUTORISATION') or 0)
+            if year:
+                start_date = datetime(year, 1, 1)
+                end_date = datetime(year, 12, 31)
 
             number = row['NUMERO AUTORISATION']
             if not number:
@@ -227,10 +234,12 @@ def populate_db(data_file, db=db):
                 number = auth_circu.db.models.generate_auth_number(base)
 
             proof_docs = []
-            if row['JUSTIFICATIF'] or row['DATE JUSTIFICATIF']:
+            justificatif = row.get('JUSTIFICATIF')
+            date_justificatif = row.get('DATE JUSTIFICATIF')
+            if justificatif or date_justificatif:
                 proof_docs = [{
-                        "legacy_info": row['JUSTIFICATIF'],
-                        "expiration": row['DATE JUSTIFICATIF'],
+                        "legacy_info": justificatif,
+                        "expiration": date_justificatif,
                         "doc_type": None
                 }]
 
@@ -273,6 +282,7 @@ def populate_db(data_file, db=db):
                 yield row
 
         db.session.commit()
+
 
 
 def get_object(model, *filters, default=None):

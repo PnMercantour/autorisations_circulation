@@ -237,6 +237,7 @@ LISTING PAGE
 
 #listing .auth-list .document {
   text-align: center;
+  white-space: nowrap;
   min-width: 15ex;
 }
 

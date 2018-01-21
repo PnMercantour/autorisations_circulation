@@ -19,6 +19,7 @@ from auth_circu.db.utils import (
 
 from auth_circu.conf import app  # noqa
 
+from pypnusershub.db.tools import init_schema
 from pypnusershub.db.models import (  # noqa
     User, Application, AppUser, ApplicationRight, UserApplicationRight
 )
@@ -26,6 +27,7 @@ from pypnusershub.db.models import (  # noqa
 
 def call_init_db(args):
     print('Initialize DB')
+    init_schema(app.config['SQLALCHEMY_DATABASE_URI'])
     init_db(app)
     print('Done')
     if args.populate:
