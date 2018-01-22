@@ -229,8 +229,14 @@ def populate_db(data_file, db=db):
                 end_date = datetime(year, 12, 31)
 
             number = row['NUMERO AUTORISATION']
-            if not number:
-                base = start_date.year if start_date else '????'
+            base = start_date.year if start_date else '????'
+            if number:
+                if len(number) > 10:
+                    number = auth_circu.db.models.generate_auth_number(base)
+                    number = number.replace('C', 'iC')
+                else:
+                    number = f"{base}-iC{int(number):04}"
+            else:
                 number = auth_circu.db.models.generate_auth_number(base)
 
             proof_docs = []
@@ -259,7 +265,11 @@ def populate_db(data_file, db=db):
                 proof_documents=proof_docs
             )
 
-            auth_req.request_date = auth_req.auth_start_date or auth_req.auth_end_date or datetime.today()
+            auth_req.request_date = (
+                auth_req.auth_start_date or
+                auth_req.auth_end_date or
+                datetime.today()
+            )
 
             for place in places:
                 auth_req.places.append(place)

@@ -225,7 +225,7 @@ class AuthRequest(db.Model, Timestamp):
         default='other'
     )
     number = db.Column(
-        db.String(10),
+        db.String(15),
         nullable=False,
         default=generate_auth_number
     )
