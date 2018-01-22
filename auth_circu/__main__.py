@@ -63,6 +63,7 @@ def reset_db(args):
 
 
 def call_populate_db(args):
+
     print('Populating db')
     start_app_context()
     for request in populate_db(args.populate):
@@ -152,16 +153,18 @@ def make_cmd_parser():
     parser_generate_config_file = subparsers.add_parser('generate_config_file')
     parser_generate_config_file.set_defaults(func=generate_config_file)
 
-    parser_init_schema = subparsers.add_parser('populate_db')
-    parser_init_schema.set_defaults(func=call_populate_db)
-    parser_init_schema.add_argument(
+    parser_populate_db = subparsers.add_parser('populate_db')
+    parser_populate_db.add_argument('populate', metavar="DATA_FILE",
+                                    help='Populate the db with legacy auth')
+    parser_populate_db.set_defaults(func=call_populate_db)
+    parser_populate_db.add_argument(
         '--config-file',
         help='Path to the config file'
     )
 
     parser_init_db = subparsers.add_parser('init_db')
     parser_init_db.set_defaults(func=call_init_db)
-    parser_init_db.add_argument('--populate', metavar="DATAF_ILE",
+    parser_init_db.add_argument('--populate', metavar="DATA_FILE",
                                 help='Populate the db with legacy auth')
     parser_init_db.add_argument('--yes', action='store_true',
                                 help='Skip the confirmation')
