@@ -176,6 +176,8 @@ def make_cmd_parser():
         '--config-file',
         help='Path to the config file'
     )
+    parser_delete_db.add_argument('--yes', action='store_true',
+                                 help='Skip the confirmation')
 
     parser_reset_db = subparsers.add_parser('reset_db')
     parser_reset_db.set_defaults(func=reset_db)
