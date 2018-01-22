@@ -55,7 +55,7 @@ angular.module('auth_circu')
           }
 
           // check the auth number
-          if (authRequest.number.indexOf(filter) !== -1){
+          if (normalize(authRequest.number).indexOf(filter) !== -1){
             return true;
           }
 
