@@ -216,7 +216,6 @@ def api_delete_authorization(auth_id):
     if auth_req.valid:
         return abort(400, "You can delete non draft authorization.")
     db.session.delete(auth_req)
-    db.session.commit()
     return Response('ok')
 
 
@@ -242,34 +241,36 @@ def api_put_authorizations(auth_id=None):
         @check_auth still ensure permissions are respected, and SQLAlchemy
         will automatically sanitize SQL so we should be ok security wise.
     """
-    if auth_id is not None:
-        auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
-    else:
-        auth_req = AuthRequest()
+    with db.session.begin():
+        if auth_id is not None:
+            auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+        else:
+            auth_req = AuthRequest()
 
-    places = []
-    for place in request.json.get('places', []):
-        filter = RestrictedPlace.id == place['id']
-        places.append(RestrictedPlace.query.filter(filter).one())
+        places = []
+        for place in request.json.get('places', []):
+            filter = RestrictedPlace.id == place['id']
+            places.append(RestrictedPlace.query.filter(filter).one())
 
-    auth_req.category = request.json.get('category')
-    auth_req.request_date = parseJSDate(request.json.get('requestDate'))
-    auth_req.motive_id = request.json.get('motive')
-    auth_req.author_gender = request.json.get('authorGender')
-    auth_req.author_name = request.json.get('authorName')
-    auth_req.author_address = request.json.get('authorAddress')
-    auth_req.author_phone = request.json.get('authorPhone')
-    auth_req.group_vehicules_on_doc = request.json.get('groupVehiculesOnDoc')
-    auth_req.auth_start_date = parseJSDate(request.json.get('authStartDate'))
-    auth_req.auth_end_date = parseJSDate(request.json.get('authEndDate'))
-    auth_req.proof_documents = request.json.get('proofDocuments', [])
-    auth_req.rules = request.json.get('rules')
-    auth_req.vehicules = request.json.get('vehicules', [])
-    auth_req.places = places
-    auth_req.active = True
-    auth_req.valid = request.json.get('valid', False)
-    auth_req.template_id = request.json.get('template') or None
+        auth_req.category = request.json.get('category')
+        auth_req.request_date = parseJSDate(request.json.get('requestDate'))
+        auth_req.motive_id = request.json.get('motive')
+        auth_req.author_gender = request.json.get('authorGender')
+        auth_req.author_name = request.json.get('authorName')
+        auth_req.author_address = request.json.get('authorAddress')
+        auth_req.author_phone = request.json.get('authorPhone')
+        auth_req.group_vehicules_on_doc = request.json.get('groupVehiculesOnDoc')
+        auth_req.auth_start_date = parseJSDate(request.json.get('authStartDate'))
+        auth_req.auth_end_date = parseJSDate(request.json.get('authEndDate'))
+        auth_req.proof_documents = request.json.get('proofDocuments', [])
+        auth_req.rules = request.json.get('rules')
+        auth_req.vehicules = request.json.get('vehicules', [])
+        auth_req.places = places
+        auth_req.active = True
+        auth_req.valid = request.json.get('valid', False)
+        auth_req.template_id = request.json.get('template') or None
 
-    db.session.add(auth_req)
-    db.session.commit()
+        db.session.add(auth_req)
+
     return jsonify(auth_req.serialize())
+

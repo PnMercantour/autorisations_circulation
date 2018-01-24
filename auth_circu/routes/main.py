@@ -122,33 +122,33 @@ def auth_form(auth_id=None):
 def clone_auth(auth_id):
     # get previous auth to clone, copy it, clear it for references, and
     # backup relations
-    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
-    places = auth_req.places
-    db.session.expunge(auth_req)
-    make_transient(auth_req)
+    
+    with db.session.begin():
+        auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+        places = auth_req.places
+        db.session.expunge(auth_req)
+        make_transient(auth_req)
 
-    auth_req.request_date = date.today()
-    auth_req.id = uuid.uuid4()
-    auth_req.valid = False
-    auth_req.number = None
-    auth_req.places = places
+        auth_req.request_date = date.today()
+        auth_req.id = uuid.uuid4()
+        auth_req.valid = False
+        auth_req.number = None
+        auth_req.places = places
 
-    if auth_req.category == "legacy":
-        for place in places:
-            if 'salese' in place.name.replace('è', 'e').lower():
-                auth_req.category = "salese"
-                break
-        else:
-            auth_req.category = "other"
+        if auth_req.category == "legacy":
+            for place in places:
+                if 'salese' in place.name.replace('è', 'e').lower():
+                    auth_req.category = "salese"
+                    break
+            else:
+                auth_req.category = "other"
 
-    db.session.add(auth_req)
-    db.session.commit()
+        db.session.add(auth_req)
 
-    # force previous places to be copied as well
-    auth_req = AuthRequest.query.get(auth_req.id)
-    auth_req.places = places
-    db.session.add(auth_req)
-    db.session.commit()
+        # force previous places to be copied as well
+        auth_req = AuthRequest.query.get(auth_req.id)
+        auth_req.places = places
+        db.session.add(auth_req)
 
     return redirect('/authorizations/' + str(auth_req.id), code=302)
 

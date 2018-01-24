@@ -54,6 +54,7 @@ def init_db(app, db=db, debug_db=False):
     engine = create_engine(
         app.config['SQLALCHEMY_DATABASE_URI'],
     )
+
     with engine.connect():
         engine.execute("CREATE SCHEMA IF NOT EXISTS auth_circu")
         engine.execute("COMMIT")
@@ -83,7 +84,9 @@ def create_test_user(app, username, password, access_rights=6, db=db):
     if user:
         raise ValueError(f"A user with username '{username}' already exists")
 
-    with db.session.begin_nested():
+
+    with db.session.begin():
+
         user = User(identifiant=username, groupe=False)
         user.password = password
         db.session.add(user)
@@ -95,8 +98,6 @@ def create_test_user(app, username, password, access_rights=6, db=db):
             id_application=app.config['AUTHCIRCU_USERSHUB_APP_ID'],
         )
         db.session.add(user_rights)
-
-    db.session.commit()
 
 
 def delete_db(app, db=db):
@@ -116,7 +117,7 @@ def get_or_create(session,
                   model,
                   create_method='',
                   create_method_kwargs=None,
-                  commit=False,
+                  commit=False, # not used anymore
                   **kwargs):
     """ Get an existing object from the DB or create one """
     try:
@@ -124,11 +125,8 @@ def get_or_create(session,
     except exc.NoResultFound:
         kwargs.update(create_method_kwargs or {})
         try:
-            with session.begin_nested():
-                created = getattr(model, create_method, model)(**kwargs)
-                session.add(created)
-            if commit:
-                session.commit()
+            created = getattr(model, create_method, model)(**kwargs)
+            session.add(created)
             return created, False
         except IntegrityError:
             return session.query(model).filter_by(**kwargs).one(), True
@@ -158,141 +156,139 @@ def populate_db(data_file, db=db):
 
     with open(data_file, encoding="utf8") as data:
 
-        for row in DictReader(data):
+        with db.session.begin():
 
-            # Remove useless spaces.
-            row = {key: (value or "").strip() for key, value in row.items()}
+            for row in DictReader(data):
 
-            name = "{NOM} {PRENOM}".format_map(row).strip()
-            address = "{ADRESSE}\n{CODE POSTAL} {COMMUNE}".format_map(row)\
-                                                         .strip()
+                # Remove useless spaces.
+                row = {key: (value or "").strip() for key, value in row.items()}
 
-            # Fetch all authorised vehicules.
-            vehicules = set()
-            for i in range(1, 5):
-                immat = row[f"IMMATRICULATION {i}"] or ""
-                immat = immat.upper().replace(' OU', '')
-                immat = immat.replace('-', "").replace(' ', '')
-                if immat:
-                    vehicules.add(immat)
+                name = "{NOM} {PRENOM}".format_map(row).strip()
+                address = "{ADRESSE}\n{CODE POSTAL} {COMMUNE}".format_map(row)\
+                                                            .strip()
 
-            # Fetch all the places, avoiding duplates.
-            # Also check if we are asking an auth for Salèse.
-            places = []
-            for i in range(1, 3):
-                place = row[f"PISTE {i}"]
-                if place:
+                # Fetch all authorised vehicules.
+                vehicules = set()
+                for i in range(1, 5):
+                    immat = row[f"IMMATRICULATION {i}"] or ""
+                    immat = immat.upper().replace(' OU', '')
+                    immat = immat.replace('-', "").replace(' ', '')
+                    if immat:
+                        vehicules.add(immat)
 
-                    norm_str = normalize(place)
+                # Fetch all the places, avoiding duplates.
+                # Also check if we are asking an auth for Salèse.
+                places = []
+                for i in range(1, 3):
+                    place = row[f"PISTE {i}"]
+                    if place:
 
-                    if norm_str not in all_places:
-                        restricted_place = auth_circu.db.models.RestrictedPlace(
-                            name=place,
-                            category="legacy"
-                        )
-                        all_places[norm_str] = restricted_place
-                        db.session.add(restricted_place)
-                    else:
-                        restricted_place = all_places[norm_str]
+                        norm_str = normalize(place)
 
-                    places.append(restricted_place)
+                        if norm_str not in all_places:
+                            restricted_place = auth_circu.db.models.RestrictedPlace(
+                                name=place,
+                                category="legacy"
+                            )
+                            all_places[norm_str] = restricted_place
+                            db.session.add(restricted_place)
+                        else:
+                            restricted_place = all_places[norm_str]
 
-            # Get the gender of the person making the request
-            gender = row['CIVILITE']
-            if not gender:
-                gender = "na"
-            elif 'mme' in gender.casefold():
-                gender = 'f'
-            else:
-                gender = 'm'
+                        places.append(restricted_place)
 
-            # Parse the starting and ending date
-            try:
-                start_date = datetime.strptime(
-                    row['DEBUT DECISION'],
-                    '%d/%m/%y'
-                ).date()
-            except (ValueError, TypeError, KeyError):
-                start_date = None
-
-            try:
-                end_date = datetime.strptime(
-                    row['FIN DECISION'],
-                    '%d/%m/%y'
-                ).date()
-            except (ValueError, TypeError, KeyError):
-                end_date = None
-
-            year = int(row.get('ANNEE AUTORISATION') or 0)
-            if year:
-                start_date = datetime(year, 1, 1)
-                end_date = datetime(year, 12, 31)
-
-            number = row['NUMERO AUTORISATION']
-            base = start_date.year if start_date else '????'
-            if number:
-                if len(number) > 10:
-                    number = auth_circu.db.models.generate_auth_number(base)
-                    number = number.replace('C', 'iC')
+                # Get the gender of the person making the request
+                gender = row['CIVILITE']
+                if not gender:
+                    gender = "na"
+                elif 'mme' in gender.casefold():
+                    gender = 'f'
                 else:
-                    number = f"{base}-iC{int(number):04}"
-            else:
-                number = auth_circu.db.models.generate_auth_number(base)
+                    gender = 'm'
 
-            proof_docs = []
-            justificatif = row.get('JUSTIFICATIF')
-            date_justificatif = row.get('DATE JUSTIFICATIF')
-            if justificatif or date_justificatif:
-                proof_docs = [{
-                        "legacy_info": justificatif,
-                        "expiration": date_justificatif,
-                        "doc_type": None
-                }]
+                # Parse the starting and ending date
+                try:
+                    start_date = datetime.strptime(
+                        row['DEBUT DECISION'],
+                        '%d/%m/%y'
+                    ).date()
+                except (ValueError, TypeError, KeyError):
+                    start_date = None
 
-            # TODO: put a "note" ?
-            auth_req = auth_circu.db.models.AuthRequest(
-                valid=None,
-                active=True,
-                number=number,
-                category='legacy',
-                author_name=name or None,
-                author_gender=gender,
-                author_address=address or None,
-                author_phone=row['TELEPHONE'] or None,
-                auth_start_date=start_date,
-                auth_end_date=end_date,
-                vehicules=list(vehicules),
-                proof_documents=proof_docs
-            )
+                try:
+                    end_date = datetime.strptime(
+                        row['FIN DECISION'],
+                        '%d/%m/%y'
+                    ).date()
+                except (ValueError, TypeError, KeyError):
+                    end_date = None
 
-            auth_req.request_date = (
-                auth_req.auth_start_date or
-                auth_req.auth_end_date or
-                datetime.today()
-            )
+                year = int(row.get('ANNEE AUTORISATION') or 0)
+                if year:
+                    start_date = datetime(year, 1, 1)
+                    end_date = datetime(year, 12, 31)
 
-            for place in places:
-                auth_req.places.append(place)
+                number = row['NUMERO AUTORISATION']
+                base = start_date.year if start_date else '????'
+                if number:
+                    if len(number) > 10:
+                        number = auth_circu.db.models.generate_auth_number(base)
+                        number = number.replace('C', 'iC')
+                    else:
+                        number = f"{base}-iC{int(number):04}"
+                else:
+                    number = auth_circu.db.models.generate_auth_number(base)
 
-            db.session.add(auth_req)
-            yield auth_req
+                proof_docs = []
+                justificatif = row.get('JUSTIFICATIF')
+                date_justificatif = row.get('DATE JUSTIFICATIF')
+                if justificatif or date_justificatif:
+                    proof_docs = [{
+                            "legacy_info": justificatif,
+                            "expiration": date_justificatif,
+                            "doc_type": None
+                    }]
 
-        db.session.commit()
+                # TODO: put a "note" ?
+                auth_req = auth_circu.db.models.AuthRequest(
+                    valid=None,
+                    active=True,
+                    number=number,
+                    category='legacy',
+                    author_name=name or None,
+                    author_gender=gender,
+                    author_address=address or None,
+                    author_phone=row['TELEPHONE'] or None,
+                    auth_start_date=start_date,
+                    auth_end_date=end_date,
+                    vehicules=list(vehicules),
+                    proof_documents=proof_docs
+                )
+
+                auth_req.request_date = (
+                    auth_req.auth_start_date or
+                    auth_req.auth_end_date or
+                    datetime.today()
+                )
+
+                for place in places:
+                    auth_req.places.append(place)
+
+                db.session.add(auth_req)
+                yield auth_req
 
         yield from import_restricted_place(db)
 
-        # add known request motives
-        with text_resource_stream('motives.csv', 'auth_circu.db') as data:
-            for row in reader(data):
-                motive = auth_circu.db.models.RequestMotive(
-                    name=row[0].strip(),
-                    active=True,
-                )
-                db.session.add(motive)
-                yield row
-
-        db.session.commit()
-
+        with db.session.begin():
+            # add known request motives
+            with text_resource_stream('motives.csv', 'auth_circu.db') as data:
+                for row in reader(data):
+                    motive = auth_circu.db.models.RequestMotive(
+                        name=row[0].strip(),
+                        active=True,
+                    )
+                    db.session.add(motive)
+                    yield row
 
 
 def get_object(model, *filters, default=None):

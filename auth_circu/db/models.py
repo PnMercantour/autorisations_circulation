@@ -1,6 +1,6 @@
 
 from uuid import uuid4
-from datetime import date
+from datetime import date, datetime
 from csv import DictReader
 
 from sqlalchemy.orm import load_only, relationship, backref
@@ -129,8 +129,6 @@ class AuthDocTemplate(db.Model, Timestamp):
         ('letter_agropasto', 'Lettre pour autorisation Agro-pastorale'),
         ('letter_other', 'Lettre pour autres autorisations'),
         ('', 'Aucun'),
-        # ('card_salese', 'Carton pour autorisation Salèse'),
-        # ('card_other', 'Carton pour autres autorisations'),
     ]
 
     id = db.Column(UUIDType, default=uuid4, primary_key=True)
@@ -287,9 +285,11 @@ class AuthRequest(db.Model, Timestamp):
         else:
             auth_end_date = None
 
+        created = getattr(self, 'created') or  datetime.now()
+
         return {
             'id': str(self.id),
-            'category': self.category.code,
+            'category': getattr(self.category, 'code', self.category),
             'number': self.number,
             'request_date': request_date,
             'motive': self.motive.serialize() if self.motive else None,
@@ -304,7 +304,7 @@ class AuthRequest(db.Model, Timestamp):
             'rules': self.rules,
             'vehicules': self.vehicules or [],
             'group_vehicules_on_doc': self.group_vehicules_on_doc,
-            'created': f'{self.created:%d/%m/%Y}',
+            'created': f'{created:%d/%m/%Y}',
             'active': self.active,
             'valid': self.valid,
             'template': str(self.template_id)

@@ -1,4 +1,5 @@
 
+
 from pypnusershub.db.models import db
 from pypnusershub.routes import check_auth
 
@@ -9,11 +10,13 @@ from flask_admin.menu import MenuLink
 from flask_admin import form
 from flask_admin.model.form import converts
 
+
 from .db.models import (
-    RequestMotive, RestrictedPlace, AuthDocTemplate, LegalContact
+    RequestMotive, RestrictedPlace, AuthDocTemplate, LegalContact, db
 )
 
 from .conf import UPLOAD_DIR
+
 
 
 class SQLAUtilsModelConverter(AdminModelConverter):
@@ -49,6 +52,23 @@ class AuthenticatedModelView(ModelView):
     def _handle_view(self, name, **kwargs):
         return super()._handle_view(name, **kwargs)
 
+    # adapt to auto commit
+    def create_model(self, *args, **kwargs):
+        db.session.begin()
+        return super().create_model(*args, **kwargs)
+
+    def update_model(self, *args, **kwargs):
+        db.session.begin()
+        return super().update_model(*args, **kwargs)
+
+    def delete_model(self, *args, **kwargs):
+        db.session.begin()
+        return super().update_model(*args, **kwargs)
+
+    def action_delete(self, *args, **kwargs):
+        with db.session.begin():
+            return super().action_delete(*args, **kwargs)
+
 
 class RequestMotiveView(AuthenticatedModelView):
     column_exclude_list = form_excluded_columns = (
@@ -80,7 +100,7 @@ class AuthDocTemplateView(AuthenticatedModelView):
     form_excluded_columns = ('created', 'updated')
     column_exclude_list = form_excluded_columns + ('path',)
     form_overrides = {
-        'path': form.FileUploadField
+        'path': form.FileUploadField,
     }
     form_args = {
         'path': {
