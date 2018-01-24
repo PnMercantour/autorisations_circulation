@@ -194,15 +194,26 @@
         </td>
 
         <td class="edit">
-          <a ng-href="/authorizations/{{ ::auth.id }}" target="_self">
-            <span class="glyphicon glyphicon-pencil"></span>
-          </a>
-          <a ng-href="/authorizations/{{ ::auth.id }}/clone" target="_self">
-            <span class="glyphicon glyphicon-duplicate"></span>
-          </a>
+
+          {% endraw %}
+
+          {% if user.id_droit_max >= 2 %}
+
+            {% raw %}
+
+            <a ng-href="/authorizations/{{ ::auth.id }}" target="_self">
+              <span class="glyphicon glyphicon-pencil"></span>
+            </a>
+            <a ng-href="/authorizations/{{ ::auth.id }}/clone" target="_self">
+              <span class="glyphicon glyphicon-duplicate"></span>
+            </a>
+
+            {% endraw %}
+
+          {% endif %}
         </td>
 
-        {% endraw %}
+
 
       </tr>
 
