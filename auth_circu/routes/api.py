@@ -212,10 +212,11 @@ def api_get_authorizations():
 @app.route('/api/v1/authorizations/<auth_id>', methods=['DELETE'])
 @check_auth(2)
 def api_delete_authorization(auth_id):
-    auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
-    if auth_req.valid:
-        return abort(400, "You can delete non draft authorization.")
-    db.session.delete(auth_req)
+    with db.session.begin():
+        auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
+        if auth_req.valid:
+            return abort(400, "You can delete non draft authorization.")
+        db.session.delete(auth_req)
     return Response('ok')
 
 
