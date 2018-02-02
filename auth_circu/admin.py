@@ -169,13 +169,26 @@ def setup_admin(app):
             db.session,
             endpoint='admin',
             url="/admin",
-            static_folder="static"
+            static_folder="static",
+            name="Lieux"
         )
     )
 
-    admin.add_view(RequestMotiveView(RequestMotive, db.session))
-    admin.add_view(AuthDocTemplateView(AuthDocTemplate, db.session))
-    admin.add_view(LegalContactView(LegalContact, db.session))
+    admin.add_view(RequestMotiveView(
+        RequestMotive,
+        db.session,
+        name="Motifs"
+    ))
+    admin.add_view(AuthDocTemplateView(
+        AuthDocTemplate,
+        db.session,
+        name="Modèles de document"
+    ))
+    admin.add_view(LegalContactView(
+        LegalContact,
+        db.session,
+        name="Contacts légaux"
+    ))
     admin.add_link(
         MenuLink(name='Retour aux autorisations', url='/authorizations')
     )
