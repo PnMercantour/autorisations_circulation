@@ -195,7 +195,7 @@ def api_get_authorizations():
             if status == "both":
                 auth_requests = auth_requests.filter(is_active | is_emitted)
 
-    auth_requests = (auth_requests.order_by(AuthRequest.updated.desc())
+    auth_requests = (auth_requests.order_by(AuthRequest.number.desc())
                                   .all())
 
     auth_requests = [obj.serialize() for obj in auth_requests]
