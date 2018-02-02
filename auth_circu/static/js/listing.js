@@ -146,7 +146,7 @@ angular.module('auth_circu')
       vm.loading = false;
     }, function(error){
       if (error.status === -1){
-        vm.error = "Impossible de charger la liste des autorisations. Vérifiez que votre connexion, puis rechargez cette page.";
+        vm.error = "Impossible de charger la liste des autorisations. Vérifiez votre connexion, puis rechargez cette page.";
       } else {
         vm.error = "Erreur en chargant la liste des autorisations. Rechargez la page. Si ce message ne disparait pas, contactez un administrateur.";
         console.error('Error loading the auth listing:', error.data);
