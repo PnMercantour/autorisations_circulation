@@ -9,3 +9,4 @@ pyexcel-ods==0.4.0  # table files can be ods
 secretary==0.2.16  # generate ods files
 git+https://github.com/PnX-SI/UsersHub-authentification-module/#egg=pypnusershub
 WeasyPrint==0.40
+pendulum==1.4.0

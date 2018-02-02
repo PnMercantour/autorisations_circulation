@@ -1,7 +1,10 @@
 import functools
 import operator
 import calendar
+
 from datetime import datetime
+
+import pendulum
 
 from flask import (
     request,
@@ -224,7 +227,7 @@ def parseJSDate(string):
     """ Parse a JS date string and return a Python date() object or None"""
     if not string:
         return None
-    return datetime.strptime(string.split('T')[0], '%Y-%m-%d').date()
+    return pendulum.parse(string).in_timezone('Europe/Paris').date()
 
 
 @app.route('/api/v1/authorizations', methods=['POST'])

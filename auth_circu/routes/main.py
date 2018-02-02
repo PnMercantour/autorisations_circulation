@@ -145,7 +145,6 @@ def clone_auth(auth_id):
 
         db.session.add(auth_req)
 
-
     # force previous places to be copied as well
     with db.session.begin():
         auth_req = AuthRequest.query.get(auth_req.id)
