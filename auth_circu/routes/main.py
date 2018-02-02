@@ -108,7 +108,7 @@ def auth_form(auth_id=None):
     return render_template(
         'auth_form.html',
         motives=motives,
-        category=request.args.get('category', 'other'),
+        category=category,
         places=json.dumps([place.serialize() for place in places]),
         auth_request=model_to_json(auth_req) if auth_id else None,
         auth_num=auth_req.number if auth_id else None,
