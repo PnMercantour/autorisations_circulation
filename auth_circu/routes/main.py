@@ -122,7 +122,7 @@ def auth_form(auth_id=None):
 def clone_auth(auth_id):
     # get previous auth to clone, copy it, clear it for references, and
     # backup relations
-    
+
     with db.session.begin():
         auth_req = get_object_or_abort(AuthRequest, AuthRequest.id == auth_id)
         places = auth_req.places
@@ -145,7 +145,9 @@ def clone_auth(auth_id):
 
         db.session.add(auth_req)
 
-        # force previous places to be copied as well
+
+    # force previous places to be copied as well
+    with db.session.begin():
         auth_req = AuthRequest.query.get(auth_req.id)
         auth_req.places = places
         db.session.add(auth_req)
