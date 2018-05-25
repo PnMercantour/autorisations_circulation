@@ -247,7 +247,7 @@ class AuthRequest(db.Model, Timestamp):
 
     auth_start_date = db.Column(db.Date)
     auth_end_date = db.Column(db.Date)
-    rules = db.Column(db.UnicodeText)
+    rules = db.Column(db.UnicodeText, default="")
 
     vehicules = db.Column(ScalarListType(str))
     group_vehicules_on_doc = db.Column(db.Boolean, default=False,
@@ -285,7 +285,7 @@ class AuthRequest(db.Model, Timestamp):
         else:
             auth_end_date = None
 
-        created = getattr(self, 'created') or  datetime.now()
+        created = getattr(self, 'created') or datetime.now()
 
         return {
             'id': str(self.id),
