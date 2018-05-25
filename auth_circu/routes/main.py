@@ -88,7 +88,7 @@ def auth_form(auth_id=None):
         selected_template = None
 
     if category == "agropasto":
-        place_filter = RestrictedPlace.category != "legacy"
+        place_filter = RestrictedPlace.category == "up"
     else:
         place_filter = RestrictedPlace.category == "piste"
 
@@ -104,6 +104,7 @@ def auth_form(auth_id=None):
                                  place_filter &
                                  (RestrictedPlace.active == True)  # noqa
                              ).order_by(RestrictedPlace.name.asc()))
+
 
     return render_template(
         'auth_form.html',

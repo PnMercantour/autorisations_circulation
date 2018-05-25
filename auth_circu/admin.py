@@ -135,7 +135,7 @@ class RestrictedPlaceView(AuthenticatedModelView):
     column_default_sort = ('category', True)
     column_formatters = {
         "category": lambda v, c, m, p: m.category.value,
-        "st": lambda v, c, m, p: m.st.value
+        "st": lambda v, c, m, p: getattr(m.st, 'value', 'Inconnu')
     }
     column_filters = (
         filters.FilterInList(
