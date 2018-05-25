@@ -95,7 +95,7 @@ if need_config_file:
 
     app.config['SECRET_KEY'] = secret_key
     app.config['COOKIE_AUTORENEW'] = True
-    app.config['COOKIE_EXPIRATION'] = 60 * 60 * 8  # 8 hours
+    app.config['COOKIE_EXPIRATION'] = 3600 * 24 * 7  # 7 days
     # prevent pypnuserhub to hide useful exceptions, such a redirections
     # and debug informations
     app.config['TRAP_ALL_EXCEPTIONS'] = False
