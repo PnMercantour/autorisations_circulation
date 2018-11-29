@@ -103,16 +103,15 @@ On installe les dependances dans l'environnement virtuel :
 
     pip install -r requirements.txt
     
-La génération de documents demande une version de développement de ``genshi``. Il faudra installer subversion et genshi à la main. 
+La génération de documents demande une version de développement de ``genshi``. Il faudra installer genshi à la main.
 
 Exemple sous Ubuntu :
 
 ::
 
-    sudo apt-get install subversion
-    svn co https://svn.edgewall.org/repos/genshi/trunk genshi
+    git clone https://github.com/edgewall/genshi.git
     cd genshi
-    python setup.py installGR
+    python setup.py install
     cd ..
 
 Assurez-vous également que côté base de données :
