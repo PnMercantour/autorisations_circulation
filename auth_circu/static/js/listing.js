@@ -12,6 +12,7 @@ angular.module('auth_circu')
   var normalize = $filter('normalize');
 
   service.listing = [];
+  service.canEdit = false;
   service.filteredListing = [];
 
   service.loadAuthorizations = function(year, month, status){
@@ -25,7 +26,8 @@ angular.module('auth_circu')
         }
       }
     ).then(function(response) {
-        service.listing = response.data;
+        service.listing = response.data.authRequests;
+        service.canEdit = response.data.canEdit;
     });
   };
 
@@ -168,7 +170,6 @@ angular.module('auth_circu')
 
     vm.authorizations.filterAuthorizations(filters);
   };
-
 
   // We use $timeout here to space digests and ensure we see the loading
   // wheel
@@ -351,6 +352,5 @@ angular.module('auth_circu')
   // populate de listing
   vm.refreshDateFilter();
 });
-
 
 })();

@@ -177,11 +177,11 @@
 
         <td>{{ ::auth.vehicules|join:', '}}</td>
 
-        <td class="document">
-          <a ng-if="::auth.valid"
+        <td class="document" >
+          <a ng-if="::auth.valid && vm.authorizations.canEdit"
              href="#"
              ng-click="vm.onDownloadAuthDocs($event, auth)">
-             {{:: auth.number }}
+             {{::auth.number }}
           </a>
           <span ng-if="::auth.valid === false"
                 class="glyphicon glyphicon-warning-sign">
@@ -189,7 +189,10 @@
           </span>
           <span ng-if="::auth.valid === null"
                 class="glyphicon glyphicon-ban-circle">
-            {{:: auth.number }}
+            {{::auth.number }}
+          </span>
+          <span ng-if="::auth.valid && !vm.authorizations.canEdit">
+            {{::auth.number }}
           </span>
         </td>
 
