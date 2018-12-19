@@ -1,26 +1,20 @@
 
 import json
-import string
 import random
-
+import string
 import unicodedata
-
 from csv import DictReader, reader
-
 from datetime import datetime
 
-from sqlalchemy.orm import exc
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy import create_engine
-
-from werkzeug.exceptions import abort
-
-
-from pypnusershub.db.models import (
-    db, Application, User, UserApplicationRight, ApplicationRight
-)
-from pypnusershub.db.tools import init_schema, delete_schema, load_fixtures
+from pypnusershub.db.models import Application, ApplicationRight, User, \
+    UserApplicationRight, db
+from pypnusershub.db.tools import delete_schema, init_schema, load_fixtures
 from pypnusershub.utils import text_resource_stream
+from sqlalchemy import create_engine
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import exc
+from sqlalchemy_utils import models
+from werkzeug.exceptions import abort
 
 import auth_circu
 
@@ -62,19 +56,20 @@ def init_db(app, db=db, debug_db=False):
     db.create_all()
 
     # ensure we have our application registered in the database
-    application, created = get_or_create(
-        db.session,
-        Application,
-        commit=True,
-        id_application=app.config['AUTHCIRCU_USERSHUB_APP_ID'],
-        create_method_kwargs={
-            'nom_application': 'Autorisations de circulation',
-            'desc_application': (
-                'Gestion des autorisations de circulation des '
-                'véhicules à moteur dans le PN du mercantour'
-            )
-        }
-    )
+    with db.session.begin():
+        application, created = get_or_create(
+            db.session,
+            Application,
+            commit=True,
+            id_application=app.config['AUTHCIRCU_USERSHUB_APP_ID'],
+            create_method_kwargs={
+                'nom_application': 'Autorisations de circulation',
+                'desc_application': (
+                    'Gestion des autorisations de circulation des '
+                    'véhicules à moteur dans le PN du mercantour'
+                )
+            }
+        )
 
 
 def create_test_user(app, username, password, access_rights=6, db=db):
@@ -83,7 +78,6 @@ def create_test_user(app, username, password, access_rights=6, db=db):
     user = User.query.filter(User.identifiant == username).one_or_none()
     if user:
         raise ValueError(f"A user with username '{username}' already exists")
-
 
     with db.session.begin():
 
@@ -279,16 +273,7 @@ def populate_db(data_file, db=db):
 
         yield from import_restricted_place(db)
 
-        with db.session.begin():
-            # add known request motives
-            with text_resource_stream('motives.csv', 'auth_circu.db') as data:
-                for row in reader(data):
-                    motive = auth_circu.db.models.RequestMotive(
-                        name=row[0].strip(),
-                        active=True,
-                    )
-                    db.session.add(motive)
-                    yield row
+        yield from import_motives(db)
 
 
 def get_object(model, *filters, default=None):
@@ -322,18 +307,38 @@ def model_to_json(obj):
 def import_restricted_place(db):
 
     # add known restricted places
-    with text_resource_stream('restricted_places.csv', 'auth_circu.db') as data:
-        for row in DictReader(data):
-            place = auth_circu.db.models.RestrictedPlace(
-                name=row['name'].strip().replace('_', ' '),
-                category=row['category'].strip(),
-                st=row['st'].strip(),
-                active=True,
-            )
-            db.session.add(place)
-            yield row
+    with db.session.begin():
+        with text_resource_stream('restricted_places.csv', 'auth_circu.db') as data:
+            for row in DictReader(data):
+                place = auth_circu.db.models.RestrictedPlace(
+                    name=row['name'].strip().replace('_', ' '),
+                    category=row['category'].strip(),
+                    st=row['st'].strip(),
+                    active=True,
+                )
+                db.session.add(place)
+                yield row
 
 
 def reset_restricted_places(db):
     auth_circu.db.models.RestrictedPlace.query.delete()
     list(import_restricted_place(db))
+
+
+def import_motives(db):
+
+    # add known motives
+    with db.session.begin():
+        # add known request motives
+        with text_resource_stream('motives.csv', 'auth_circu.db') as data:
+            for row in reader(data):
+                motive = auth_circu.db.models.RequestMotive(
+                    name=row[0].strip(),
+                    active=True,
+                )
+                db.session.add(motive)
+                yield row
+
+def reset_motives(db):
+    auth_circu.db.models.RequestMotive.query.delete()
+    list(import_motives(db))

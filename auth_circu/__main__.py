@@ -14,7 +14,7 @@ from auth_circu.db.models import ( # noqa
 )
 from auth_circu.db.utils import (
     start_app_context, init_db, delete_db, create_test_user, populate_db,
-    generate_secret_key, reset_restricted_places
+    generate_secret_key, reset_restricted_places, reset_motives
 )
 
 from auth_circu.conf import app  # noqa
@@ -54,6 +54,12 @@ def call_reset_restricted_places(args):
     print('Processing')
     start_app_context()
     reset_restricted_places(db)
+    print('Done')
+
+def call_reset_motives(args):
+    print('Processing')
+    start_app_context()
+    reset_motives(db)
     print('Done')
 
 
@@ -197,6 +203,9 @@ def make_cmd_parser():
 
     parser_reset_restricted_places = subparsers.add_parser('reset_restricted_places')
     parser_reset_restricted_places.set_defaults(func=call_reset_restricted_places)
+
+    parser_reset_restricted_places = subparsers.add_parser('reset_motives')
+    parser_reset_restricted_places.set_defaults(func=call_reset_motives)
 
     parser_create_user = subparsers.add_parser('create_test_user')
     parser_create_user.set_defaults(func=call_create_test_user)
