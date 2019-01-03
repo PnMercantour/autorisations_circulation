@@ -1,0 +1,20 @@
+[Unit]
+Description = auth_circu  
+After = network.target
+
+[Service]
+PermissionsStartOnly = true  
+PIDFile = /run/auth_circu/auth_circu.pid  
+User = www-data  
+Group = www-data  
+WorkingDirectory = /var/www/auth_circu
+ExecStartPre = /bin/mkdir -p /run/auth_circu  
+ExecStartPre = /bin/chown -R www-data:www-data /run/auth_circu  
+ExecStart = /var/www/auth_circu/env/bin/gunicorn auth_circu.wsgi:app -b 127.0.0.1:8000 --pid /run/auth_circu/auth_circu.pid -w 3 
+ExecReload = /bin/kill -s HUP $MAINPID  
+ExecStop = /bin/kill -s TERM $MAINPID  
+ExecStopPost = /bin/rm -rf /run/auth_circu  
+PrivateTmp = true
+
+[Install]
+WantedBy = multi-user.target
