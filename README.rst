@@ -97,10 +97,11 @@ On créé un environnement virtuel
 ::
 
     cd auth_circu
+    # on est à la racine du dépôt
     python3.6 -m venv env
     source env/bin/activate # activer l'env
 
-Si vous etes sous linux, assurez-vous d'avoir de quoi compiler les extensions C nécessaires à la connection à la base de données et à la génération des documents, particulièrement les headers ``Python`` et de ``libffi``, les libs de rendu ``cairo`` et ``pango`` ainsi qu'un compilateur comme ``GCC``.
+Si vous êtes sous linux, assurez-vous d'avoir de quoi compiler les extensions C nécessaires à la connection à la base de données et à la génération des documents, particulièrement les headers ``Python`` et de ``libffi``, les libs de rendu ``cairo`` et ``pango`` ainsi qu'un compilateur comme ``GCC``.
 
 Exemple sous Ubuntu ou debian :
 
