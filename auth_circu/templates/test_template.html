@@ -4,6 +4,13 @@
 
 {% block pageid %}test-template{% endblock pageid %}
 
+ {% block extracss %}
+  <link rel="stylesheet" type="text/css"
+  href="{{ url_for('static', filename='css/dropzone/basic.css') }}">
+  <link rel="stylesheet" type="text/css"
+        href="{{ url_for('static', filename='css/dropzone/dropzone.css') }}">
+{% endblock extracss %}
+
 {% block extrajs %}
   <script src="{{ url_for('static', filename='js/select.js') }}"
           type="text/javascript" charset="utf-8" ></script>
