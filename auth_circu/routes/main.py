@@ -4,16 +4,22 @@ import json
 
 from datetime import datetime, date
 
+import jinja2
+
 import flask_excel
 
 import pypnusershub.routes
 
 from sqlalchemy.orm.session import make_transient
 
-from flask import render_template, send_from_directory, request, redirect, g
+from flask import render_template, send_from_directory, request, redirect, g, Response
+
+from werkzeug.exceptions import BadRequest
 
 from pypnusershub.db.tools import AccessRightsError, user_from_token
 from pypnusershub.routes import check_auth
+
+from secretary import Renderer
 
 from ..conf import app
 from ..db.models import AuthRequest, RequestMotive, RestrictedPlace, db, AuthDocTemplate
@@ -35,6 +41,8 @@ MONTHS_VALUES = [str(key) for key, val in MONTHS]
 
 
 AUTH_STATUS = {"both": "émises ou valides", "emitted": "émises", "active": "valides"}
+
+odt_renderer = Renderer()
 
 
 def to_int(obj, default):
@@ -204,6 +212,79 @@ def favicon():
         "img/favicon.ico",
         mimetype="image/vnd.microsoft.icon",
     )
+
+
+@app.route("/test-template/")
+@check_auth(6, redirect_on_expiration="/", redirect_on_invalid_token="/")
+def test_template():
+    """ Let the user upload a template for testing """
+    return render_template("test_template.html")
+
+
+@app.route("/test-template/", methods=["POST"])
+def test_template_upload():
+    if "file" not in request.files:
+        raise BadRequest("There must be a 'file' parameter")
+
+    file = request.files["file"]
+    category = request.form["category"]
+
+    auth_requests = AuthRequest.query.filter_by(category=category)
+
+    if category != "legacy":
+        auth_requests = auth_requests.filter_by(valid=True)
+
+    auth_req = auth_requests.order_by(AuthRequest.created.desc()).first()
+
+    if not auth_req:
+        return Response("Il n'y a pas d'autorisation de ce type dans la base", status=400)
+
+    prefix = auth_req.author_prefix
+    if prefix:
+        prefix += " "
+
+    places = [place.name for place in auth_req.places]
+    vehicules = list(auth_req.vehicules)
+
+    start_date = auth_req.auth_start_date or datetime.now()
+    auth_start_date = start_date.strftime("%d/%m/%Y")
+    end_date = auth_req.auth_end_date or start_date
+    auth_end_date = end_date.strftime("%d/%m/%Y")
+
+    # agro pasto letters don't display the day for those dates
+    if auth_req.category == "agropasto":
+        auth_start_date = auth_start_date[3:]
+        auth_end_date = auth_end_date[3:]
+
+    # generate an easy to manipulate data structure for building the
+    # authorizations cards. It's easier to do that here than in the template:
+    # we can now always act like we have several cards even if we have only
+    # one and always loop.
+    if auth_req.group_vehicules_on_doc:
+        cards = [vehicules]
+    else:
+        cards = [[v] for v in vehicules]
+    try:
+        data = odt_renderer.render(
+            file.stream,
+            author_prefix=prefix,
+            auth_req=auth_req,
+            request_date=auth_req.request_date.strftime("%d/%m/%Y"),
+            feminin=auth_req.author_gender == "f",
+            auth_start_date=auth_start_date,
+            auth_end_date=auth_end_date,
+            places=places,
+            places_count=len(places),
+            vehicules=vehicules,
+            vehicules_count=len(vehicules),
+            doc_creation_date=datetime.now().strftime("%d %B %Y"),
+            legal_contact="Faux contact légal",
+            cards=cards,
+        )
+    except jinja2.exceptions.TemplateSyntaxError as e:
+        return Response(str(e), status=400)
+
+    return "OK"
 
 
 @app.errorhandler(404)

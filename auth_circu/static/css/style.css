@@ -109,7 +109,6 @@ Global
   text-decoration: none;
 }
 
-
 /******************
 HOME PAGE
 *******************/
@@ -180,7 +179,6 @@ LISTING PAGE
   margin-right: 1rem;
 }
 
-
 /* Header */
 
 #listing .listing-header {
@@ -191,7 +189,6 @@ LISTING PAGE
   display: inline-block;
 }
 
-
 #listing .listing-header .search{
   margin: 1rem 0;
 }
@@ -199,7 +196,6 @@ LISTING PAGE
 #listing .listing-header .search input{
   padding-right: 5rem;
 }
-
 
 #listing .listing-header .glyphicon-remove-circle {
     position: absolute;
@@ -224,7 +220,6 @@ LISTING PAGE
   display: block;
 }
 
-
 #listing .auth-list .candidate {
   min-width: 35ex;
 }
@@ -233,19 +228,15 @@ LISTING PAGE
   margin-bottom: 0;
 }
 
-
-
 #listing .auth-list .document {
   text-align: center;
   white-space: nowrap;
   min-width: 15ex;
 }
 
-
 #listing .auth-list .document a {
   text-decoration: underline;
 }
-
 
 #listing .auth-list .edit {
   min-width: 15ex;
@@ -255,7 +246,6 @@ LISTING PAGE
 #listing .auth-list .edit a {
   padding: 0 1rem;
 }
-
 
 #listing tbody tr:nth-of-type(odd) {
   background: #eee;
@@ -274,7 +264,6 @@ LISTING PAGE
     display: block;
   }
 
-
   #listing thead tr {
     display: none;
   }
@@ -282,7 +271,6 @@ LISTING PAGE
   #listing tr {
     border: 1px solid #ccc;
   }
-
 
   /* Label the data */
   #listing td:before {
@@ -313,7 +301,6 @@ LISTING PAGE
 
 }
 
-
 /* Footer */
 
 #listing .listing-footer {
@@ -341,7 +328,6 @@ LISTING PAGE
 /**************************
 Forms
 ****************************/
-
 
 #auth-form .row  {
   margin: 2rem 0;

@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block appname %}test_template{% endblock appname %}"
+
+{% block pageid %}test-template{% endblock pageid %}
+
+{% block extrajs %}
+  <script src="{{ url_for('static', filename='js/select.js') }}"
+          type="text/javascript" charset="utf-8" ></script>
+  <script src="{{ url_for('static', filename='js/dropzone.js') }}"
+          type="text/javascript" charset="utf-8" ></script>
+  <script src="{{ url_for('static', filename='js/testTemplate.js') }}"
+          type="text/javascript" charset="utf-8" ></script>
+{% endblock extrajs %}
+
+{% block title %}
+Tester un modèle
+{% endblock title %}
+{% block h1 %}
+  Tester un modèle
+{% endblock h1 %}
+
+{% block content %}
+<section class="container">
+<p>
+{% raw %}
+
+<div ng-controller="uploader as ctrl" >
+    <form name="uploadForm" id="uploadForm"
+          class="dropzone" action="/test-template/">
+      <label for="category"> Type d'autorisation: </label><br>
+      <select name="category" ng-model="ctrl.type">
+        <option value="agropasto">Agro-pastorale</option>
+        <option value="salese">Pour Salèse</option>
+        <option value="other">Autre</option>
+        <option value="legacy">Importée</option>
+      </select>
+
+    </form>
+  </div>
+{% endraw %}
+
+<!-- Template used by dropzone -->
+<div class="hidden">
+<div class="table table-striped" class="files" id="previews">
+
+    <div id="template" class="file-row">
+
+      <div>
+          <span class="preview"><img data-dz-thumbnail /></span>
+      </div>
+      <div>
+          <p class="name" data-dz-name></p>
+          <strong class="error text-danger" data-dz-errormessage></strong>
+      </div>
+      <div>
+          <p class="size" data-dz-size></p>
+          <div class="progress progress-striped active" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+            <div class="progress-bar progress-bar-info" style="width:0%;" data-dz-uploadprogress></div>
+          </div>
+      </div>
+      <div>
+        <button data-dz-remove class="btn btn-danger delete">
+          <i class="glyphicon glyphicon-trash"></i>
+          <span>Delete</span>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}

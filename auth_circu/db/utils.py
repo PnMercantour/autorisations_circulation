@@ -217,7 +217,10 @@ def populate_db(data_file, db=db):
                 except (ValueError, TypeError, KeyError):
                     end_date = None
 
-                year = int(row.get('ANNEE AUTORISATION') or 0)
+                try:
+                    year = int(row.get('ANNEE AUTORISATION') or 0)
+                except ValueError:
+                    continue
                 if year:
                     start_date = datetime(year, 1, 1)
                     end_date = datetime(year, 12, 31)
