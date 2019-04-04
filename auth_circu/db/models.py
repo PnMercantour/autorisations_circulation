@@ -242,7 +242,7 @@ class AuthRequest(db.Model, Timestamp):
     places = db.relationship(
         'RestrictedPlace',
         secondary=request_to_place,
-        backref='requests'
+        backref='requests',
     )
 
     auth_start_date = db.Column(db.Date)

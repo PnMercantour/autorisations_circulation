@@ -12,7 +12,8 @@ from flask_admin.model.form import converts
 
 
 from .db.models import (
-    RequestMotive, RestrictedPlace, AuthDocTemplate, LegalContact, db
+    RequestMotive, RestrictedPlace, AuthDocTemplate, LegalContact, db,
+    AuthRequest
 )
 
 from .conf import UPLOAD_DIR
@@ -63,7 +64,7 @@ class AuthenticatedModelView(ModelView):
 
     def delete_model(self, *args, **kwargs):
         db.session.begin()
-        return super().update_model(*args, **kwargs)
+        return super().delete_model(*args, **kwargs)
 
     def action_delete(self, *args, **kwargs):
         with db.session.begin():
@@ -158,6 +159,26 @@ class RestrictedPlaceView(AuthenticatedModelView):
     form_columns = ['name', 'category', 'st', 'active']
 
 
+
+class AuthRequestView(AuthenticatedModelView):
+
+
+    can_create = False
+    can_edit = False
+    can_delete = True
+
+    column_list = ['author_name', 'number', 'request_date']
+    column_searchable_list = ['author_name', 'number', 'request_date']
+    column_default_sort = ('created', True)
+    column_labels = {
+        'author_name': 'Nom du demandeur',
+        'request_date': 'Date de la demande',
+        'number': 'Numéro'
+
+    }
+    form_columns = ['author_name', 'request_date']
+
+
 def setup_admin(app):
 
     # Automatic admin
@@ -188,6 +209,11 @@ def setup_admin(app):
         LegalContact,
         db.session,
         name="Contacts légaux"
+    ))
+    admin.add_view(AuthRequestView(
+        AuthRequest,
+        db.session,
+        name="Demandes"
     ))
     admin.add_link(
         MenuLink(name='Retour aux autorisations', url='/authorizations')
