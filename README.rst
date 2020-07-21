@@ -1,7 +1,7 @@
 Autorisations de circulation
 ============================
 
-Application permettant la génération des courriers et des cartons d'autorisations de circulation dans le coeur du parc national du Mercantour.
+Application permettant la génération des courriers et des cartons d'autorisations de circulation dans le cœur du parc national du Mercantour.
 
 Dans le cœur du parc, la circulation et le stationnement des véhicules motorisés (automobile, moto, cyclomoteur, etc.) sont interdits.
 Cependant, chaque année le Parc national du Mercantour (PNM) délivre entre 600 et 800 autorisations individuelles de circuler au titre de l'article 15 du décret n° 2009-486 du 29 avril 2009.
@@ -13,7 +13,7 @@ Technologies
 * BDD : PostgreSQL, PostGIS
 * Serveur : Debian 8 Jessie
 * Framework PYTHON : Flask
-* Framework JS : AngularJS
+* Framework JS : AngularJS 1
 * Framework CSS : Bootstrap
 
 Fonctionnalités
@@ -41,7 +41,7 @@ Si l'installation est pour la production, on utilisera nginx, qu'il faut donc in
 
     sudo apt install nginx
 
-Cette partie n'est pas obligatoire si on ne fait pas une mise en production.
+Cette partie n'est pas obligatoire si on ne fait pas une mise en production. L'utilisation d'Apache est possible, mais non couverte par le README.
 
 Choisir un dossier où l'on va mettre le code de l'application. Sous Linux on utilise souvent /var/www (qui n'existe que si un serveur comme nginx a été installé au préalable)::
 
@@ -55,23 +55,17 @@ Ensuite, on récupère le code (si dans /var/www, il faudra les droits admins)
     git clone https://github.com/PnMercantour/autorisations_circulation auth_circu
 
 
-Vous pouvez aussi télécharger une archive du dépôt et la dézipper :
-::
-
-    wget https://github.com/PnMercantour/autorisations_circulation/archive/master.zip
-
-
 Ajouter un dossier pour l'upload. Toujours avec l'exemple de ubuntu, debian, mate, etc:
 
     sudo mkdir auth_circu/auth_circu/static/upload
 
 
-Il faut avoir Python 3.6 installé :
+Il faut avoir Python 3.6+ installé :
 
 - sous Windows on peut télécharger l'installer 64 bits sur le site officiel (https://www.python.org/downloads/release/python-360/)
 - sous Mac on peut utiliser ``homebrew`` (http://docs.python-guide.org/en/latest/starting/install/osx/)
 - si vous utilisez un système Linux récent comme la dernière version d'Ubuntu, vous pouvez utiliser les dépôts officiels. Ex: ``sudo apt-get install python3.6``
-- Si vous utilisez un Linux plus ancien, il faut utiliser une source externe. Par exemple, sous Ubuntu, un ``ppa`` :
+- Si vous utilisez un Linux plus ancien, il faut utiliser une source externe. Par exemple, sous Ubuntu LTS, un ``ppa`` :
 
   ::
 
@@ -79,18 +73,8 @@ Il faut avoir Python 3.6 installé :
     sudo apt update
     sudo apt-get install python3.6 python3.6-venv python3.6-dev
 
-- sous Debian (jessie) en ``root``, on peut utiliser python:
+Il faut également ``venv`` installé sur votre machine. Une installation récente de Python a généralement ``venv`` pré-installé sous la forme de la commande ``python -m venv``. Une exception notable sont les distributions Linux basées sur Debian (comme Ubuntu) qui ont besoin qu'on installe le package ``python3-venv`` (``sudo apt-get install...``).
 
-  ::
-
-    sudo apt-get install build-essential zlib1g-dev libbz2-dev libssl-dev libreadline-dev libncurses5-dev libsqlite3-dev libgdbm-dev libdb-dev libexpat-dev libpcap-dev liblzma-dev libpcre3-dev curl
-    curl -kL https://raw.github.com/saghul/pythonz/master/pythonz-install | bash
-    /usr/local/pythonz/bin/pythonz install 3.6.8
-    ln -s $(pythonz locate 3.6.8) /usr/bin/python3.6
-
-Il faut également ``virtualenv`` installé sur votre machine. Une installation récente de Python a généralement ``virtualenv`` pré-installé, soit sous la forme de la commande ``virtualenv``, soit sous la forme de la commande ``python -m venv``. Une exception notable sont les distributions Linux basées sur Debian (comme Ubuntu) qui ont besoin qu'on installe le package ``python3-virtualenv`` (``sudo apt-get install...``).
-
-Faites attention à utiliser un ``virtualenv`` installé pour Python 3 et non Python 2.
 
 On créé un environnement virtuel
 
@@ -107,7 +91,7 @@ Exemple sous Ubuntu ou debian :
 
 ::
 
-    sudo apt-get install build-essential libffi-dev libcairo2 libpango1.0-0
+    sudo apt-get install build-essential libffi-dev libcairo2 libpango1.0-0 
 
 
 On installe les dependances dans l'environnement virtuel :
@@ -130,23 +114,18 @@ Exemple sous Ubuntu (avec le virtualenv activé):
 
 Assurez-vous également que côté base de données :
 
-- vous avez une version suffisament récente de PostgreSQL (9.5 ou plus).
-- vous avez créez une base de données et un utilisateur (role) qui a tous les droits sur cette BDD.
+- vous avez une version suffisament récente de PostgreSQL (9.5 ou plus) ainsi que ses headers
+- vous avez créez une base de données utilisant UTF8 et un role qui a tous les droits sur cette BDD.
 - l'utilisateur a le droit de créer un schéma dans la base (même si le schéma existe déjà). Exemple en faisant : ``GRANT CREATE ON DATABASE nom_data_base TO nom_utilisateur``.
 - la base de données est accessible de manière sécurisée depuis l'extérieur afin de permettre à UsersHub de se connecter.
-- UsersHub possède les identifiants et I+ port de la base de données.
+- UsersHub possède les identifiants et port de la base de données.
 
-Exemple :
-
-Installer PostGreSQL sur Jessie :
+Exemple pour debian:
 
 ::
 
-    sudo apt install postgresql-client-9.6 postgresql-9.6
-    echo 'deb http://apt.postgresql.org/pub/repos/apt/ jessie-pgdg main' >> /etc/apt/sources.list.d/postgresql.list
-    wget --no-check-certificate -q https://www.postgresql.org/media/keys/ACCC4CF8.asc -O- | apt-key add -
-    apt-get update
-    apt install postgresql-9.6
+    sudo apt install  postgresql-9.6 postgresql-client postgresql-server-dev-all
+
 
 Pour l'installation sous Mac, plusieurs procédures sont possibles: https://www.postgresql.org/download/macosx/
 
@@ -161,12 +140,8 @@ Sur un serveur Linux, on peut le faire directement dans le shell de postgres:
 ::
 
     su postgres; cd
-    createdb auth_circu
-    createuser auth_circu
-    psql
-    ALTER USER "auth_circu" WITH PASSWORD 'mdp';
-    GRANT ALL PRIVILEGES ON DATABASE "auth_circu" to auth_circu;
-    \q
+    createuser auth_circu -P
+    createdb auth_circu -O auth_circu  -E UTF8 -T template0 
     exit
 
 Remplacez ``'mdp'`` par le mot de passe de votre choix.
@@ -232,8 +207,7 @@ Enfin, pour avoir les dates formatées dans la bonne langue, il faut générer l
 
 ::
 
-    sudo locale-gen fr_FR.UTF-8
-    sudo update-locale
+    dpkg-reconfigure locales # choisir  fr_FR.UTF-8
 
 
 Lancer le serveur en mode dev
