@@ -87,11 +87,19 @@ On créé un environnement virtuel
 
 Si vous êtes sous linux, assurez-vous d'avoir de quoi compiler les extensions C nécessaires à la connection à la base de données et à la génération des documents, particulièrement les headers ``Python`` et de ``libffi``, les libs de rendu ``cairo`` et ``pango`` ainsi qu'un compilateur comme ``GCC``.
 
+Une fois l'env activé, mettez le à jour:
+
+::
+
+    python -m pip install pip setuptools wheel --upgrade
+
 Exemple sous Ubuntu ou debian :
 
 ::
 
     sudo apt-get install build-essential libffi-dev libcairo2 libpango1.0-0 
+    
+    
 
 
 On installe les dependances dans l'environnement virtuel :
